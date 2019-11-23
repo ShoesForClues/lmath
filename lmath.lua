@@ -54,8 +54,8 @@ local matrix44 = {}; matrix44.__index = matrix44
 local quat     = {}; quat.__index     = quat
 local rect     = {}; rect.__index     = rect
 local udim2    = {}; udim2.__index    = udim2
-local rgb      = {}; rgb.__index      = rgb
-local rgba     = {}; rgba.__index     = rgba
+local color3   = {}; color3.__index   = color3
+local color4   = {}; color4.__index   = color4
 
 --Vector2
 vector2.new=function(x,y)
@@ -358,64 +358,64 @@ rect.unpack=function(a)
 end
 rect.lerp=lmath.lerp
 
---RGB
-rgb.new=function(r,g,b)
+--Color3
+color3.new=function(r,g,b)
 	return setmetatable({
 		r=r or 0,
 		g=g or 0,
 		b=b or 0
-	},rgb)
+	},color3)
 end
-rgb.from_hex=function(hex)
+color3.from_hex=function(hex)
 	hex=hex:gsub("#","")
-	return rgb.new(
+	return color3.new(
 		tonumber("0x"..hex:sub(1,2))/255,
 		tonumber("0x"..hex:sub(3,4))/255,
 		tonumber("0x"..hex:sub(5,6))/255
 	)
 end
-rgb.__tostring=function(a)
+color3.__tostring=function(a)
 	return ("%d, %d, %d"):format(floor(a.r*255),floor(a.g*255),floor(a.b*255))
 end
-rgb.__unm=function(a)
-	return rgb.new(-a.r,-a.g,-a.b)
+color3.__unm=function(a)
+	return color3.new(-a.r,-a.g,-a.b)
 end
-rgb.__add=function(a,b)
-	return rgb.new(a.r+b.r,a.g+b.g,a.b+b.b)
+color3.__add=function(a,b)
+	return color3.new(a.r+b.r,a.g+b.g,a.b+b.b)
 end
-rgb.__sub=function(a,b)
-	return rgb.new(a.r-b.r,a.g-b.g,a.b-b.b)
+color3.__sub=function(a,b)
+	return color3.new(a.r-b.r,a.g-b.g,a.b-b.b)
 end
-rgb.__mul=function(a,b)
+color3.__mul=function(a,b)
 	if type(a)=="number" then
-		return rgb.new(a*b.r,a*b.g,a*b.b)
+		return color3.new(a*b.r,a*b.g,a*b.b)
 	elseif type(b)=="number" then
-		return rgb.new(a.r*b,a.g*b,a.b*b)
+		return color3.new(a.r*b,a.g*b,a.b*b)
 	else
-		return rgb.new(a.r*b.r,a.g*b.g,a.b*b.b)
+		return color3.new(a.r*b.r,a.g*b.g,a.b*b.b)
 	end
 end
-rgb.__div=function(a,b)
+color3.__div=function(a,b)
 	if type(a)=="number" then
-		return rgb.new(a/b.r,a/b.g,a/b.b)
+		return color3.new(a/b.r,a/b.g,a/b.b)
 	elseif type(b)=="number" then
-		return rgb.new(a.r/b,a.g/b,a.b/b)
+		return color3.new(a.r/b,a.g/b,a.b/b)
 	else
-		return rgb.new(a.r/b.r,a.g/b.g,a.b/b.b)
+		return color3.new(a.r/b.r,a.g/b.g,a.b/b.b)
 	end
 end
-rgb.__eq=function(a,b)
+color3.__eq=function(a,b)
 	return a.r==b.r and a.g==b.g and a.b==b.b
 end
-rgb.unpack=function(a)
+color3.unpack=function(a)
 	return {a.r,a.g,a.b}
 end
-rgb.lerp=lmath.lerp
+color3.lerp=lmath.lerp
 
 lmath.vector2 = setmetatable(vector2,vector2)
 lmath.vector3 = setmetatable(vector3,vector3)
 lmath.rect    = setmetatable(rect,rect)
 lmath.udim2   = setmetatable(udim2,udim2)
-lmath.rgb     = setmetatable(rgb,rgb)
+lmath.color3  = setmetatable(color3,color3)
 
 return lmath
