@@ -19,11 +19,11 @@ print(b:cross(lmath.vector3(8,2,4))) --8, 40, -36
 
 # Data Types
 
-- vector2(x,y) --{x,y}
-- vector3(x,y,z) --{x,y,z}
-- udim2(x_scale,x_offset,y_scale,y_offset) --{x={offset,scale},y={offset,scale}}
-- rect(min_x,min_y,max_x,max_y) --{min_x,min_y,max_x,max_y}
-- rgb(r,g,b) --{r,g,b}
+- *vector2*(x,y) --{x,y}
+- *vector3*(x,y,z) --{x,y,z}
+- *udim2*(x_scale,x_offset,y_scale,y_offset) --{x={offset,scale},y={offset,scale}}
+- *rect*(min_x,min_y,max_x,max_y) --{min_x,min_y,max_x,max_y}
+- *rgb*(r,g,b) --{r,g,b}
 
 # To-Do
 
