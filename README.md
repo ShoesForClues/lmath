@@ -8,7 +8,6 @@ local a=lmath.vector2(5,2)
 local b=lmath.vector3(2,5,6)
 
 print(a) --5, 2
-print(a.magnitude) --5.39...
 print(a*2) --10, 4
 print(a:lerp(lmath.vector2(20,6),0.5)) --12.5, 4
 
