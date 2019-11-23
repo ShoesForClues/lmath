@@ -1,7 +1,7 @@
 # lmath
 A light math library written in Lua.
 
-# How to use
+# How To Use
 ```lua
 local lmath=require("lmath")
 local a=lmath.vector2(5,2)
@@ -16,7 +16,7 @@ print(b:dot(lmath.vector3(8,2,4))) --50
 print(b:cross(lmath.vector3(8,2,4))) --8, 40, -36
 ```
 
-# Data types
+# Data Types
 ```lua
 vector2(x,y) --{x,y}
 
