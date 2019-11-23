@@ -12,6 +12,7 @@ print(b.z) --6
 
 print(a*2) --10, 4
 print(a:lerp(lmath.vector2(20,6),0.5)) --7.5, 2
+
 print(b:dot(lmath.vector3(8,2,4))) --50
 print(b:cross(lmath.vector3(8,2,4))) --8, 40, -36
 ```
