@@ -28,3 +28,7 @@ rect(min_x,min_y,max_x,max_y) --{min_x,min_y,max_x,max_y}
 
 rgb(r,g,b) --{r,g,b}
 ```
+
+# License
+This software is free to use. You can modify it and redistribute it under the terms of the 
+MIT license. Check [LICENSE](LICENSE) for further details.
