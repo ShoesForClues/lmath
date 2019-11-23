@@ -369,9 +369,9 @@ end
 rgb.from_hex=function(hex)
 	hex=hex:gsub("#","")
 	return rgb.new(
-		tonumber("0x"..hex:sub(1,2)),
-		tonumber("0x"..hex:sub(3,4)),
-		tonumber("0x"..hex:sub(5,6))
+		tonumber("0x"..hex:sub(1,2))/255,
+		tonumber("0x"..hex:sub(3,4))/255,
+		tonumber("0x"..hex:sub(5,6))/255
 	)
 end
 rgb.__tostring=function(a)
