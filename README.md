@@ -22,13 +22,13 @@ print(b:cross(lmath.vector3.new(8,2,4))) --8, 40, -36
 - **vector3**(x,y,z) --{x,y,z}
 - **udim2**(x_scale,x_offset,y_scale,y_offset) --{x={offset,scale},y={offset,scale}}
 - **rect**(min_x,min_y,max_x,max_y) --{min_x,min_y,max_x,max_y}
-- **rgb**(r,g,b) --{r,g,b}
+- **color3**(r,g,b) --{r,g,b}
 
 # To-Do
 
 - 4x4 Matrix
 - Quaternions
-- RGB from HSV
+- Color3 from HSV
 
 # License
 This software is free to use. You can modify it and redistribute it under the terms of the 
