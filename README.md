@@ -16,8 +16,10 @@ print(b:cross(lmath.vector3(8,2,4))) --8, 40, -36
 ```
 
 # Data types
+```
 vector2(x,y) Returns {x,y}
 vector3(x,y,z) Returns {x,y,z}
 udim2(x_scale,x_offset,y_scale,y_offset) Returns {x={offset,scale},y={offset,scale}}
 rect(min_x,min_y,max_x,max_y) Returns {min_x,min_y,max_x,max_y}
 rgb(r,g,b) Returns {r,g,b}
+```
