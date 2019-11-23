@@ -45,12 +45,12 @@ lmath.lerp=function(start,goal,percent)
 end
 
 --[Data Types]
-local vector2 = {lerp=lmath.lerp};vector2.__index = vector2
-local vector3 = {lerp=lmath.lerp};vector3.__index = vector3
-local rect    = {lerp=lmath.lerp};rect.__index    = rect
-local udim2   = {lerp=lmath.lerp};udim2.__index   = udim2
-local rgb     = {lerp=lmath.lerp};rgb.__index     = rgb
-local rgba    = {lerp=lmath.lerp};rgba.__index    = rgba
+local vector2 = {lerp=lmath.lerp};vector2.__index=vector2
+local vector3 = {lerp=lmath.lerp};vector3.__index=vector3
+local rect    = {lerp=lmath.lerp};rect.__index=rect
+local udim2   = {lerp=lmath.lerp};udim2.__index=udim2
+local rgb     = {lerp=lmath.lerp};rgb.__index=rgb
+local rgba    = {lerp=lmath.lerp};rgba.__index=rgba
 
 --Vector2
 function vector2:__call(x,y)
