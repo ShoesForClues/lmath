@@ -366,6 +366,14 @@ rgb.new=function(r,g,b)
 		b=b or 0
 	},rgb)
 end
+rgb.from_hex=function(hex)
+	hex=hex:gsub("#","")
+	return rgb.new(
+		tonumber("0x"..hex:sub(1,2)),
+		tonumber("0x"..hex:sub(3,4)),
+		tonumber("0x"..hex:sub(5,6))
+	)
+end
 rgb.__tostring=function(a)
 	return ("%d, %d, %d"):format(floor(a.r*255),floor(a.g*255),floor(a.b*255))
 end
