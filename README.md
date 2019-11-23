@@ -4,6 +4,7 @@ A light math library written in Lua.
 # How To Use
 ```lua
 local lmath=require("lmath")
+
 local a=lmath.vector2.new(5,2)
 local b=lmath.vector3.new(2,5,6)
 
