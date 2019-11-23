@@ -41,7 +41,7 @@ lmath.clamp=function(v,min,max)
 end
 
 lmath.lerp=function(start,goal,percent)
-	return (goal-start)*percent
+	return (1-percent)*start+percent*goal
 end
 
 --[Data Types]
