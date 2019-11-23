@@ -92,6 +92,9 @@ end
 function vector2:__eq(b)
 	return self.x==b.x and self.y==b.y
 end
+function vector2:unpack()
+	return {self.x,self.y}
+end
 
 --Vector3
 function vector3:__call(x,y,z)
@@ -137,6 +140,9 @@ end
 function vector3:__eq(b)
 	return self.x==b.x and self.y==b.y and self.z==b.z
 end
+function vector3:unpack()
+	return {self.x,self.y,self.z}
+end
 
 --UDim2
 function udim2:__call(x_scale,x_offset,y_scale,y_offset)
@@ -173,6 +179,9 @@ function udim2:__div(b)
 end
 function udim2:__eq(b)
 	return self.x.scale==b.x.scale and self.x.offset==b.x.offset and self.y.scale==b.y.scale and self.y.offset==b.y.offset
+end
+function udim2:unpack()
+	return {self.x.scale,self.x.offset,self.y.scale,self.y.offset}
 end
 
 --Rect
@@ -213,6 +222,9 @@ end
 function rect:__eq(b)
 	return self.min_x==b.min_x and self.min_y==b.min_y and self.max_x==b.max_x and self.max_y==b.max_y
 end
+function rect:unpack()
+	return {self.min_x,self.min_y,self.max_x,self.max_y}
+end
 
 --rgb
 function rgb:__call(r,g,b)
@@ -221,9 +233,6 @@ function rgb:__call(r,g,b)
 		g=g or 0,
 		b=b or 0
 	},self)
-end
-function rgb:unpack()
-	return {self.r,self.g,self.b}
 end
 function rgb:__tostring()
 	return ("%d, %d, %d"):format(floor(self.r*255),floor(self.g*255),floor(self.b*255))
@@ -253,6 +262,9 @@ function rgb:__div(b)
 end
 function rgb:__eq(b)
 	return self.r==b.r and self.g==b.g and self.b==b.b
+end
+function rgb:unpack()
+	return {self.r,self.g,self.b}
 end
 
 lmath.vector2 = setmetatable(vector2,vector2)
