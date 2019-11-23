@@ -9,7 +9,7 @@ local b=lmath.vector3(2,5,6)
 
 print(a) --5, 2
 print(a*2) --10, 4
-print(a:lerp(lmath.vector2(20,6),0.5)) --7.5, 2
+print(a:lerp(lmath.vector2(20,6),0.5)) --12.5, 4
 
 print(b.z) --6
 print(b:dot(lmath.vector3(8,2,4))) --50
