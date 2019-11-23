@@ -23,12 +23,15 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,0,2};
+	_version={0,0,3};
 }
 
 --[Primitives]
 local sqrt  = math.sqrt
 local floor = math.floor
+local tan   = math.tan
+local rad   = math.rad
+local pi    = math.pi
 
 --[Functions]
 lmath.clamp=function(v,min,max)
@@ -40,232 +43,366 @@ lmath.clamp=function(v,min,max)
 	return v
 end
 
-lmath.lerp=function(start,goal,percent)
-	return start*(1-percent)+goal*percent
+lmath.lerp=function(start,goal,t)
+	return start*(1-t)+goal*t
 end
 
 --[Data Types]
-local vector2 = {lerp=lmath.lerp};vector2.__index=vector2
-local vector3 = {lerp=lmath.lerp};vector3.__index=vector3
-local rect    = {lerp=lmath.lerp};rect.__index=rect
-local udim2   = {lerp=lmath.lerp};udim2.__index=udim2
-local rgb     = {lerp=lmath.lerp};rgb.__index=rgb
-local rgba    = {lerp=lmath.lerp};rgba.__index=rgba
+local vector2  = {}; vector2.__index  = vector2
+local vector3  = {}; vector3.__index  = vector3
+local matrix44 = {}; matrix44.__index = matrix44
+local quat     = {}; quat.__index     = quat
+local rect     = {}; rect.__index     = rect
+local udim2    = {}; udim2.__index    = udim2
+local rgb      = {}; rgb.__index      = rgb
+local rgba     = {}; rgba.__index     = rgba
 
 --Vector2
-function vector2:__call(x,y)
+vector2.new=function(x,y)
 	return setmetatable({
 		x=x or 0,
-		y=y or 0,
-		magnitude=sqrt((x or 0)^2+(y or 0)^2)
-	},self)
+		y=y or 0
+	},vector2)
 end
-function vector2:dot(b)
-	return (self.x*b.x)+(self.y*b.y)
+vector2.__tostring=function(va)
+	return ("%f, %f"):format(a.x,a.y)
 end
-function vector2:__tostring()
-	return ("%f, %f"):format(self.x,self.y)
+vector2.__unm=function(a)
+	return vector2.new(-a.x,-a.y)
 end
-function vector2:__unm()
-	return vector2(-self.x,-self.y)
+vector2.__add=function(a,b)
+	return vector2.new(a.x+b.x,a.y+b.y)
 end
-function vector2:__add(b)
-	return vector2(self.x+b.x,self.y+b.y)
+vector2.__sub=function(a,b)
+	return vector2.new(a.x-b.x,a.y-b.y)
 end
-function vector2:__sub(b)
-	return vector2(self.x-b.x,self.y-b.y)
-end
-function vector2:__mul(b)
-	if type(b)=="number" then
-		return vector2(self.x*b,self.y*b)
-	elseif getmetatable(b)==vector2 then
-		return vector2(self.x*b.x,self.y*b.y)
+vector2.__mul=function(a,b)
+	if type(a)=="number" then
+		return vector2.new(a*b.x,a*b.y)
+	elseif type(b)=="number" then
+		return vector2.new(a.x*b,a.y*b)
+	else
+		return vector2.new(a.x*b.x,a.y*b.y)
 	end
 end
-function vector2:__div(b)
-	if type(b)=="number" then
-		return vector2(self.x/b,self.y/b)
-	elseif getmetatable(b)==vector2 then
-		return vector2(self.x/b.x,self.y/b.y)
+vector2.__div=function(a,b)
+	if type(a)=="number" then
+		return vector2.new(a/b.x,a/b.y)
+	elseif type(b)=="number" then
+		return vector2.new(a.x/b,a.y/b)
+	else
+		return vector2.new(a.x/b.x,a.y/b.y)
 	end
 end
-function vector2:__eq(b)
-	return self.x==b.x and self.y==b.y
+vector2.__eq=function(a,b)
+	return a.x==b.x and a.y==b.y
 end
-function vector2:unpack()
-	return {self.x,self.y}
+vector2.dot=function(a,b)
+	return (a.x*b.x)+(a.y*b.y)
 end
+vector2.unpack=function(a)
+	return {a.x,a.y}
+end
+vector2.lerp=lmath.lerp
 
 --Vector3
-function vector3:__call(x,y,z)
+vector3.new=function(x,y,z)
 	return setmetatable({
 		x=x or 0,
 		y=y or 0,
-		z=z or 0,
-		magnitude=sqrt((x or 0)^2+(y or 0)^2+(z or 0)^2)
-	},self)
+		z=z or 0
+	},vector3)
 end
-function vector3:dot(b)
-	return (self.x*b.x)+(self.y*b.y)+(self.z*b.z)
+vector3.__tostring=function(a)
+	return ("%f, %f, %f"):format(a.x,a.y,a.z)
 end
-function vector3:cross(b)
-	return vector3(self.y*b.z-self.z*b.y,self.z*b.x-self.x*b.z,self.x*b.y-self.y*b.x)
+vector3.__unm=function(a)
+	return vector3.new(-a.x,-a.y,-a.z)
 end
-function vector3:__tostring()
-	return ("%f, %f, %f"):format(self.x,self.y,self.z)
+vector3.__add=function(a,b)
+	return vector3.new(a.x+b.x,a.y+b.y,a.z+b.z)
 end
-function vector3:__unm()
-	return vector3(-self.x,-self.y,-self.z)
+vector3.__sub=function(a,b)
+	return vector3.new(a.x-b.x,a.y-b.y,a.z-b.z)
 end
-function vector3:__add(b)
-	return vector3(self.x+b.x,self.y+b.y,self.z+b.z)
-end
-function vector3:__sub(b)
-	return vector3(self.x-b.x,self.y-b.y,self.z-b.z)
-end
-function vector3:__mul(b)
-	if type(b)=="number" then
-		return vector3(self.x*b,self.y*b,self.z*b)
-	elseif getmetatable(b)==vector3 then
-		return vector3(self.x*b.x,self.y*b.y,self.z*b.z)
+vector3.__mul=function(a,b)
+	if type(a)=="number" then
+		return vector3.new(a*b.x,a*b.y,a*b.z)
+	elseif type(b)=="number" then
+		return vector3.new(a.x*b,a.y*b,a.z*b)
+	else
+		return vector3.new(a.x*b.x,a.y*b.y,a.z*b.z)
 	end
 end
-function vector3:__div(b)
-	if type(b)=="number" then
-		return vector3(self.x/b,self.y/b,self.z/b)
-	elseif getmetatable(b)==vector3 then
-		return vector3(self.x/b.x,self.y/b.y,self.z/b.z)
+vector3.__div=function(a,b)
+	if type(a)=="number" then
+		return vector3.new(a/b.x,a/b.y,a/b.z)
+	elseif type(b)=="number" then
+		return vector3.new(a.x/b,a.y/b,a.z/b)
+	else
+		return vector3.new(a.x/b.x,a.y/b.y,a.z/b.z)
 	end
 end
-function vector3:__eq(b)
-	return self.x==b.x and self.y==b.y and self.z==b.z
+vector3.__eq=function(a,b)
+	return a.x==b.x and a.y==b.y and a.z==b.z
 end
-function vector3:unpack()
-	return {self.x,self.y,self.z}
+vector3.dot=function(a,b)
+	return (a.x*b.x)+(a.y*b.y)+(a.z*b.z)
+end
+vector3.cross=function(a,b)
+	return vector3.new(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x)
+end
+vector3.unpack=function(a)
+	return {a.x,a.y,a.z}
+end
+vector2.lerp=lmath.lerp
+
+--Matrix44
+matrix44.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
+	return setmetatable({
+		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
+		{a5 or 0,a6 or 0,a7 or 0,a8 or 0},
+		{a9 or 0,a10 or 0,a11 or 0,a12 or 0},
+		{a13 or 0,a14 or 0,a15 or 0,a16 or 0}
+	},matrix44)
+end
+matrix44.from_perspective=function(fov,aspect,near,far)
+	local scale=tan(rad(fov)/2)
+	return matrix44.new(
+		1/(scale*aspect),0,0,0,
+		0,1/scale,0,0,
+		0,0,-(far+near)/(far-near),-1,
+		0,0,-(2*far*near)/(far-near),0
+	)
+end
+matrix44.__tostring=function(a)
+	return ("%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f"):format(
+		a[1][1],a[1][2],a[1][3],a[1][4],
+		a[2][1],a[2][2],a[2][3],a[2][4],
+		a[3][1],a[3][2],a[3][3],a[3][4],
+		a[4][1],a[4][2],a[4][3],a[4][4]
+	)
+end
+matrix44.__unm=function(a)
+	return matrix44.new(
+		-a[1][1],-a[1][2],-a[1][3],-a[1][4],
+		-a[2][1],-a[2][2],-a[2][3],-a[2][4],
+		-a[3][1],-a[3][2],-a[3][3],-a[3][4],
+		-a[4][1],-a[4][2],-a[4][3],-a[4][4]
+	)
+end
+matrix44.__add=function(a,b)
+	return matrix44.new(
+		a[1][1]+b[1][1],a[1][2]+b[1][2],a[1][3]+b[1][3],a[1][4]+b[1][4],
+		a[2][1]+b[2][1],a[2][2]+b[2][2],a[2][3]+b[2][3],a[2][4]+b[2][4],
+		a[3][1]+b[3][1],a[3][2]+b[3][2],a[3][3]+b[3][3],a[3][4]+b[3][4],
+		a[4][1]+b[4][1],a[4][2]+b[4][2],a[4][3]+b[4][3],a[4][4]+b[4][4]
+	)
+end
+matrix44.__sub=function(a,b)
+	return matrix44.new(
+		a[1][1]-b[1][1],a[1][2]-b[1][2],a[1][3]-b[1][3],a[1][4]-b[1][4],
+		a[2][1]-b[2][1],a[2][2]-b[2][2],a[2][3]-b[2][3],a[2][4]-b[2][4],
+		a[3][1]-b[3][1],a[3][2]-b[3][2],a[3][3]-b[3][3],a[3][4]-b[3][4],
+		a[4][1]-b[4][1],a[4][2]-b[4][2],a[4][3]-b[4][3],a[4][4]-b[4][4]
+	)
+end
+matrix44.__mul=function(a,b)
+	if type(a)=="number" then
+		return matrix44.new(
+			a*b[1][1],a*b[1][2],a*b[1][3],a*b[1][4],
+			a*b[2][1],a*b[2][2],a*b[2][3],a*b[2][4],
+			a*b[3][1],a*b[3][2],a*b[3][3],a*b[3][4],
+			a*b[4][1],a*b[4][2],a*b[4][3],a*b[4][4]
+		)
+	elseif type(b)=="number" then
+		return matrix44.new(
+			b*a[1][1],b*a[1][2],b*a[1][3],b*a[1][4],
+			b*a[2][1],b*a[2][2],b*a[2][3],b*a[2][4],
+			b*a[3][1],b*a[3][2],b*a[3][3],b*a[3][4],
+			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4]
+		)
+	else
+		return matrix44.new(
+			
+		)
+	end
+end
+matrix44.__div=function(a,b)
+	if type(a)=="number" then
+		return matrix44.new(
+			a/b[1][1],a/b[1][2],a/b[1][3],a/b[1][4],
+			a/b[2][1],a/b[2][2],a/b[2][3],a/b[2][4],
+			a/b[3][1],a/b[3][2],a/b[3][3],a/b[3][4],
+			a/b[4][1],a/b[4][2],a/b[4][3],a/b[4][4]
+		)
+	elseif type(b)=="number" then
+		return matrix44.new(
+			b/a[1][1],b/a[1][2],b/a[1][3],b/a[1][4],
+			b/a[2][1],b/a[2][2],b/a[2][3],b/a[2][4],
+			b/a[3][1],b/a[3][2],b/a[3][3],b/a[3][4],
+			b/a[4][1],b/a[4][2],b/a[4][3],b/a[4][4]
+		)
+	else
+		return matrix44.new(
+			
+		)
+	end
+end
+matrix44.__eq=function(a,b)
+	return (
+		a[1][1]==b[1][1] and a[1][2]==b[1][2] and a[1][3]==b[1][3] and a[1][4]==b[1][4] and
+		a[2][1]==b[2][1] and a[2][2]==b[2][2] and a[2][3]==b[2][3] and a[2][4]==b[2][4] and
+		a[3][1]==b[3][1] and a[3][2]==b[3][2] and a[3][3]==b[3][3] and a[3][4]==b[3][4] and
+		a[4][1]==b[4][1] and a[4][2]==b[4][2] and a[4][3]==b[4][3] and a[4][4]==b[4][4]
+	)
+end
+matrix44.unpack=function(a)
+	return {
+		a[1][1],a[1][2],a[1][3],a[1][4],
+		a[2][1],a[2][2],a[2][3],a[2][4],
+		a[3][1],a[3][2],a[3][3],a[3][4],
+		a[4][1],a[4][2],a[4][3],a[4][4]
+	}
 end
 
 --UDim2
-function udim2:__call(x_scale,x_offset,y_scale,y_offset)
+udim2.new=function(x_scale,x_offset,y_scale,y_offset)
 	return setmetatable({
 		x={offset=x_offset or 0,scale=x_scale or 0},
 		y={offset=y_offset or 0,scale=y_scale or 0}
-	},self)
+	},udim2)
 end
-function udim2:__tostring()
-	return ("%f, %d, %f, %d"):format(self.x.scale,self.x.offset,self.y.scale,self.y.offset)
+udim2.__tostring=function(a)
+	return ("%f, %d, %f, %d"):format(a.x.scale,a.x.offset,a.y.scale,a.y.offset)
 end
-function udim2:__unm()
-	return udim2(-self.x.scale,-self.x.offset,-self.y.scale,-self.y.offset)
+udim2.__unm=function(a)
+	return udim2.new(-a.x.scale,-a.x.offset,-a.y.scale,-a.y.offset)
 end
-function udim2:__add(b)
-	return udim2(self.x.scale+b.x.scale,self.x.offset+b.x.offset,self.y.scale+b.y.scale,self.y.offset+b.y.offset)
+udim2.__add=function(a,b)
+	return udim2.new(a.x.scale+b.x.scale,a.x.offset+b.x.offset,a.y.scale+b.y.scale,a.y.offset+b.y.offset)
 end
-function udim2:__sub(b)
-	return udim2(self.x.scale-b.x.scale,self.x.offset-b.x.offset,self.y.scale-b.y.scale,self.y.offset-b.y.offset)
+udim2.__sub=function(a,b)
+	return udim2.new(a.x.scale-b.x.scale,a.x.offset-b.x.offset,a.y.scale-b.y.scale,a.y.offset-b.y.offset)
 end
-function udim2:__mul(b)
-	if type(b)=="number" then
-		return udim2(self.x.scale*b,self.x.offset*b,self.y.scale*b,self.y.offset*b)
-	elseif getmetatable(b)==udim2 then
-		return udim2(self.x.scale*b.x.scale,self.x.offset*b.x.offset,self.y.scale*b.y.scale,self.y.offset*b.y.offset)
+udim2.__mul=function(a,b)
+	if type(a)=="number" then
+		return udim2.new(a*b.x.scale,a*b.x.offset,a*b.y.scale,a*b.y.offset)
+	elseif type(b)=="number" then
+		return udim2.new(a.x.scale*b,a.x.offset*b,a.y.scale*b,a.y.offset*b)
+	else
+		return udim2.new(a.x.scale*b.x.scale,a.x.offset*b.x.offset,a.y.scale*b.y.scale,a.y.offset*b.y.offset)
 	end
 end
-function udim2:__div(b)
-	if type(b)=="number" then
-		return udim2(self.x.scale/b,self.x.offset/b,self.y.scale/b,self.y.offset/b)
-	elseif getmetatable(b)==udim2 then
-		return udim2(self.x.scale/b.x.scale,self.x.offset/b.x.offset,self.y.scale/b.y.scale,self.y.offset/b.y.offset)
+udim2.__div=function(a,b)
+	if type(a)=="number" then
+		return udim2.new(a/b.x.scale,a/b.x.offset,a/b.y.scale,a/b.y.offset)
+	elseif type(b)=="number" then
+		return udim2.new(a.x.scale/b,a.x.offset/b,a.y.scale/b,a.y.offset/b)
+	else
+		return udim2.new(a.x.scale/b.x.scale,a.x.offset/b.x.offset,a.y.scale/b.y.scale,a.y.offset/b.y.offset)
 	end
 end
-function udim2:__eq(b)
-	return self.x.scale==b.x.scale and self.x.offset==b.x.offset and self.y.scale==b.y.scale and self.y.offset==b.y.offset
+udim2.__eq=function(a,b)
+	return a.x.scale==b.x.scale and a.x.offset==b.x.offset and a.y.scale==b.y.scale and a.y.offset==b.y.offset
 end
-function udim2:unpack()
-	return {self.x.scale,self.x.offset,self.y.scale,self.y.offset}
+udim2.unpack=function(a)
+	return {a.x.scale,a.x.offset,a.y.scale,a.y.offset}
 end
+udim2.lerp=lmath.lerp
 
 --Rect
-function rect:__call(min_x,min_y,max_x,max_y)
+rect.new=function(min_x,min_y,max_x,max_y)
 	return setmetatable({
 		min_x=min_x or 0,
 		min_y=min_y or 0,
 		max_x=max_x or 0,
 		max_y=max_y or 0
-	},self)
+	},rect)
 end
-function rect:__tostring()
-	return ("%d, %d, %d, %d"):format(self.min_x,self.min_y,self.max_x,self.max_y)
+rect.__tostring=function(a)
+	return ("%d, %d, %d, %d"):format(a.min_x,a.min_y,a.max_x,a.max_y)
 end
-function rect:__unm()
-	return rect(-self.min_x,-self.min_y,-self.max_x,-self.max_y)
+rect.__unm=function(a)
+	return rect.new(-a.min_x,-a.min_y,-a.max_x,-a.max_y)
 end
-function rect:__add(b)
-	return rect(self.min_x+b.min_x,self.min_y+b.min_y,self.max_x+b.max_x,self.max_y+b.max_y)
+rect.__add=function(a,b)
+	return rect.new(a.min_x+b.min_x,a.min_y+b.min_y,a.max_x+b.max_x,a.max_y+b.max_y)
 end
-function rect:__sub(b)
-	return rect(self.min_x-b.min_x,self.min_y-b.min_y,self.max_x-b.max_x,self.max_y-b.max_y)
+rect.__sub=function(a,b)
+	return rect.new(a.min_x-b.min_x,a.min_y-b.min_y,a.max_x-b.max_x,a.max_y-b.max_y)
 end
-function rect:__mul(b)
-	if type(b)=="number" then
-		return rect(self.min_x*b,self.min_y*b,self.max_x*b,self.max_y*b)
-	elseif getmetatable(b)==rect then
-		return rect(self.min_x*b.min_x,self.min_y*b.min_y,self.max_x*b.max_x,self.max_y*b.max_y)
+rect.__mul=function(a,b)
+	if type(a)=="number" then
+		return rect.new(a*b.min_x,a*b.min_y,a*b.max_x,a*b.max_y)
+	elseif type(b)=="number" then
+		return rect.new(a.min_x*b,a.min_y*b,a.max_x*b,a.max_y*b)
+	else
+		return rect.new(a.min_x*b.min_x,a.min_y*b.min_y,a.max_x*b.max_x,a.max_y*b.max_y)
 	end
 end
-function rect:__div(b)
-	if type(b)=="number" then
-		return rect(self.min_x/b,self.min_y/b,self.max_x/b,self.max_y/b)
-	elseif getmetatable(b)==rect then
-		return rect(self.min_x/b.min_x,self.min_y/b.min_y,self.max_x/b.max_x,self.max_y/b.max_y)
+rect.__div=function(a,b)
+	if type(a)=="number" then
+		return rect.new(a/b.min_x,a/b.min_y,a/b.max_x,a/b.max_y)
+	elseif type(b)=="number" then
+		return rect.new(a.min_x/b,a.min_y/b,a.max_x/b,a.max_y/b)
+	else
+		return rect.new(a.min_x/b.min_x,a.min_y/b.min_y,a.max_x/b.max_x,a.max_y/b.max_y)
 	end
 end
-function rect:__eq(b)
-	return self.min_x==b.min_x and self.min_y==b.min_y and self.max_x==b.max_x and self.max_y==b.max_y
+rect.__eq=function(a,b)
+	return a.min_x==b.min_x and a.min_y==b.min_y and a.max_x==b.max_x and a.max_y==b.max_y
 end
-function rect:unpack()
-	return {self.min_x,self.min_y,self.max_x,self.max_y}
+rect.unpack=function(a)
+	return {a.min_x,a.min_y,a.max_x,a.max_y}
 end
+rect.lerp=lmath.lerp
 
---rgb
-function rgb:__call(r,g,b)
+--RGB
+rgb.new=function(r,g,b)
 	return setmetatable({
 		r=r or 0,
 		g=g or 0,
 		b=b or 0
-	},self)
+	},rgb)
 end
-function rgb:__tostring()
-	return ("%d, %d, %d"):format(floor(self.r*255),floor(self.g*255),floor(self.b*255))
+rgb.__tostring=function(a)
+	return ("%d, %d, %d"):format(floor(a.r*255),floor(a.g*255),floor(a.b*255))
 end
-function rgb:__unm()
-	return rgb(-self.r,-self.g,-self.b)
+rgb.__unm=function(a)
+	return rgb.new(-a.r,-a.g,-a.b)
 end
-function rgb:__add(b)
-	return rgb(self.r+b.r,self.g+b.g,self.b+b.b)
+rgb.__add=function(a,b)
+	return rgb.new(a.r+b.r,a.g+b.g,a.b+b.b)
 end
-function rgb:__sub(b)
-	return rgb(self.r-b.r,self.g-b.g,self.b-b.b)
+rgb.__sub=function(a,b)
+	return rgb.new(a.r-b.r,a.g-b.g,a.b-b.b)
 end
-function rgb:__mul(b)
-	if type(b)=="number" then
-		return rgb(self.r*b,self.g*b,self.b*b)
-	elseif getmetatable(b)==rgb then
-		return rgb(self.r*b.r,self.g*b.g,self.b*b.b)
+rgb.__mul=function(a,b)
+	if type(a)=="number" then
+		return rgb.new(a*b.r,a*b.g,a*b.b)
+	elseif type(b)=="number" then
+		return rgb.new(a.r*b,a.g*b,a.b*b)
+	else
+		return rgb.new(a.r*b.r,a.g*b.g,a.b*b.b)
 	end
 end
-function rgb:__div(b)
-	if type(b)=="number" then
-		return rgb(self.r/b,self.g/b,self.b/b)
-	elseif getmetatable(b)==rgb then
-		return rgb(self.r/b.r,self.g/b.g,self.b/b.b)
+rgb.__div=function(a,b)
+	if type(a)=="number" then
+		return rgb.new(a/b.r,a/b.g,a/b.b)
+	elseif type(b)=="number" then
+		return rgb.new(a.r/b,a.g/b,a.b/b)
+	else
+		return rgb.new(a.r/b.r,a.g/b.g,a.b/b.b)
 	end
 end
-function rgb:__eq(b)
-	return self.r==b.r and self.g==b.g and self.b==b.b
+rgb.__eq=function(a,b)
+	return a.r==b.r and a.g==b.g and a.b==b.b
 end
-function rgb:unpack()
-	return {self.r,self.g,self.b}
+rgb.unpack=function(a)
+	return {a.r,a.g,a.b}
 end
+rgb.lerp=lmath.lerp
 
 lmath.vector2 = setmetatable(vector2,vector2)
 lmath.vector3 = setmetatable(vector3,vector3)
