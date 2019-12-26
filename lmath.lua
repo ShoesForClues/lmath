@@ -23,17 +23,17 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,0,3};
+	_version={0,0,5};
 }
 
---[Primitives]
+--Primitives
 local sqrt  = math.sqrt
 local floor = math.floor
 local tan   = math.tan
 local rad   = math.rad
 local pi    = math.pi
 
---[Functions]
+--Functions
 lmath.clamp=function(v,min,max)
 	if v<min or v~=v then
 		return min
@@ -47,7 +47,7 @@ lmath.lerp=function(start,goal,t)
 	return start*(1-t)+goal*t
 end
 
---[Data Types]
+--Data Types
 local vector2  = {}; vector2.__index  = vector2
 local vector3  = {}; vector3.__index  = vector3
 local matrix44 = {}; matrix44.__index = matrix44
@@ -57,14 +57,14 @@ local udim2    = {}; udim2.__index    = udim2
 local color3   = {}; color3.__index   = color3
 local color4   = {}; color4.__index   = color4
 
---Vector2
+------------------------------[Vector2]------------------------------
 vector2.new=function(x,y)
 	return setmetatable({
 		x=x or 0,
 		y=y or 0
 	},vector2)
 end
-vector2.__tostring=function(va)
+vector2.__tostring=function(a)
 	return ("%f, %f"):format(a.x,a.y)
 end
 vector2.__unm=function(a)
@@ -101,11 +101,11 @@ vector2.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)
 end
 vector2.unpack=function(a)
-	return {a.x,a.y}
+	return a.x,a.y
 end
 vector2.lerp=lmath.lerp
 
---Vector3
+------------------------------[Vector3]------------------------------
 vector3.new=function(x,y,z)
 	return setmetatable({
 		x=x or 0,
@@ -153,11 +153,11 @@ vector3.cross=function(a,b)
 	return vector3.new(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x)
 end
 vector3.unpack=function(a)
-	return {a.x,a.y,a.z}
+	return a.x,a.y,a.z
 end
-vector2.lerp=lmath.lerp
+vector3.lerp=lmath.lerp
 
---Matrix44
+------------------------------[Matrix 4x4]------------------------------
 matrix44.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return setmetatable({
 		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
@@ -258,15 +258,13 @@ matrix44.__eq=function(a,b)
 	)
 end
 matrix44.unpack=function(a)
-	return {
-		a[1][1],a[1][2],a[1][3],a[1][4],
+	return a[1][1],a[1][2],a[1][3],a[1][4],
 		a[2][1],a[2][2],a[2][3],a[2][4],
 		a[3][1],a[3][2],a[3][3],a[3][4],
 		a[4][1],a[4][2],a[4][3],a[4][4]
-	}
 end
 
---UDim2
+------------------------------[UDim2]------------------------------
 udim2.new=function(x_scale,x_offset,y_scale,y_offset)
 	return setmetatable({
 		x={offset=x_offset or 0,scale=x_scale or 0},
@@ -307,11 +305,11 @@ udim2.__eq=function(a,b)
 	return a.x.scale==b.x.scale and a.x.offset==b.x.offset and a.y.scale==b.y.scale and a.y.offset==b.y.offset
 end
 udim2.unpack=function(a)
-	return {a.x.scale,a.x.offset,a.y.scale,a.y.offset}
+	return a.x.scale,a.x.offset,a.y.scale,a.y.offset
 end
 udim2.lerp=lmath.lerp
 
---Rect
+------------------------------[Rect]------------------------------
 rect.new=function(min_x,min_y,max_x,max_y)
 	return setmetatable({
 		min_x=min_x or 0,
@@ -353,12 +351,20 @@ end
 rect.__eq=function(a,b)
 	return a.min_x==b.min_x and a.min_y==b.min_y and a.max_x==b.max_x and a.max_y==b.max_y
 end
+rect.clamp=function(a,b)
+	return rect.new(
+		lmath.clamp(a.min_x,b.min_x,b.max_x),
+		lmath.clamp(a.min_y,b.min_y,b.max_y),
+		lmath.clamp(a.max_x,b.min_x,b.max_x),
+		lmath.clamp(a.max_y,b.min_y,b.max_y)
+	)
+end
 rect.unpack=function(a)
-	return {a.min_x,a.min_y,a.max_x,a.max_y}
+	return a.min_x,a.min_y,a.max_x,a.max_y
 end
 rect.lerp=lmath.lerp
 
---Color3
+------------------------------[Color3]------------------------------
 color3.new=function(r,g,b)
 	return setmetatable({
 		r=r or 0,
@@ -375,7 +381,7 @@ color3.from_hex=function(hex)
 	)
 end
 color3.__tostring=function(a)
-	return ("%d, %d, %d"):format(floor(a.r*255),floor(a.g*255),floor(a.b*255))
+	return ("%d, %d, %d"):format(a.r*255,a.g*255,a.b*255)
 end
 color3.__unm=function(a)
 	return color3.new(-a.r,-a.g,-a.b)
@@ -408,14 +414,15 @@ color3.__eq=function(a,b)
 	return a.r==b.r and a.g==b.g and a.b==b.b
 end
 color3.unpack=function(a)
-	return {a.r,a.g,a.b}
+	return a.r,a.g,a.b
 end
 color3.lerp=lmath.lerp
 
-lmath.vector2 = setmetatable(vector2,vector2)
-lmath.vector3 = setmetatable(vector3,vector3)
-lmath.rect    = setmetatable(rect,rect)
-lmath.udim2   = setmetatable(udim2,udim2)
-lmath.color3  = setmetatable(color3,color3)
+lmath.vector2  = setmetatable(vector2,vector2)
+lmath.vector3  = setmetatable(vector3,vector3)
+lmath.matrix44 = setmetatable(matrix44,matrix44)
+lmath.rect     = setmetatable(rect,rect)
+lmath.udim2    = setmetatable(udim2,udim2)
+lmath.color3   = setmetatable(color3,color3)
 
 return lmath
