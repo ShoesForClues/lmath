@@ -23,7 +23,7 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,0,5};
+	_version={0,0,8};
 }
 
 --Primitives
@@ -32,6 +32,7 @@ local floor = math.floor
 local tan   = math.tan
 local rad   = math.rad
 local pi    = math.pi
+local tpi   = pi*2
 
 --Functions
 lmath.clamp=function(v,min,max)
@@ -47,17 +48,44 @@ lmath.lerp=function(start,goal,t)
 	return start*(1-t)+goal*t
 end
 
+lmath.lerp_angle=function(start,goal,percent)
+	local shortest_angle=((((goal-start)%tpi)+rad(540))%tpi)-pi
+	return start+(shortest_angle*percent)%tpi
+end
+
+lmath.round=function(num,decimal_place)
+	local mult=10^(decimal_place or 0)
+	return floor(num*mult+0.5)/mult
+end
+
+lmath.round_multiple=function(num,multiple)
+	return floor(num/multiple+0.5)*multiple
+end
+
 --Data Types
-local vector2  = {}; vector2.__index  = vector2
-local vector3  = {}; vector3.__index  = vector3
-local matrix44 = {}; matrix44.__index = matrix44
-local quat     = {}; quat.__index     = quat
-local rect     = {}; rect.__index     = rect
-local udim2    = {}; udim2.__index    = udim2
-local color3   = {}; color3.__index   = color3
-local color4   = {}; color4.__index   = color4
+local vector2  = {}
+local vector3  = {}
+local matrix44 = {}
+local quat     = {}
+local rect     = {}
+local udim     = {}
+local udim2    = {}
+local color3   = {}
+local color4   = {}
 
 ------------------------------[Vector2]------------------------------
+vector2.__index=function(a,k)
+	if k=="magnitude" then
+		local magnitude=sqrt(a.x^2+a.y^2)
+		rawset(a,"magnitude",magnitude)
+		return magnitude
+	elseif k=="unit" then
+		local unit=a/a.magnitude
+		rawset(a,"unit",unit)
+		return unit
+	end
+	return a[k]
+end
 vector2.new=function(x,y)
 	return setmetatable({
 		x=x or 0,
@@ -100,12 +128,27 @@ end
 vector2.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)
 end
+vector2.cross=function(a,b)
+	return (a.x*b.y)-(a.y*b.x);
+end
 vector2.unpack=function(a)
 	return a.x,a.y
 end
 vector2.lerp=lmath.lerp
 
 ------------------------------[Vector3]------------------------------
+vector3.__index=function(a,k)
+	if k=="magnitude" then
+		local magnitude=sqrt(a.x^2+a.y^2+a.z^2)
+		rawset(a,"magnitude",magnitude)
+		return magnitude
+	elseif k=="unit" then
+		local unit=a/a.magnitude
+		rawset(a,"unit",unit)
+		return unit
+	end
+	return a[k]
+end
 vector3.new=function(x,y,z)
 	return setmetatable({
 		x=x or 0,
@@ -158,6 +201,7 @@ end
 vector3.lerp=lmath.lerp
 
 ------------------------------[Matrix 4x4]------------------------------
+matrix44.__index=matrix44
 matrix44.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return setmetatable({
 		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
@@ -265,6 +309,7 @@ matrix44.unpack=function(a)
 end
 
 ------------------------------[UDim2]------------------------------
+udim2.__index=udim2
 udim2.new=function(x_scale,x_offset,y_scale,y_offset)
 	return setmetatable({
 		x={offset=x_offset or 0,scale=x_scale or 0},
@@ -310,6 +355,7 @@ end
 udim2.lerp=lmath.lerp
 
 ------------------------------[Rect]------------------------------
+rect.__index=rect
 rect.new=function(min_x,min_y,max_x,max_y)
 	return setmetatable({
 		min_x=min_x or 0,
@@ -365,6 +411,7 @@ end
 rect.lerp=lmath.lerp
 
 ------------------------------[Color3]------------------------------
+color3.__index=color3
 color3.new=function(r,g,b)
 	return setmetatable({
 		r=r or 0,
