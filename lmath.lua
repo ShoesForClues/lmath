@@ -84,7 +84,6 @@ vector2.__index=function(a,k)
 		rawset(a,"unit",unit)
 		return unit
 	end
-	return a[k]
 end
 vector2.new=function(x,y)
 	return setmetatable({
@@ -147,7 +146,6 @@ vector3.__index=function(a,k)
 		rawset(a,"unit",unit)
 		return unit
 	end
-	return a[k]
 end
 vector3.new=function(x,y,z)
 	return setmetatable({
