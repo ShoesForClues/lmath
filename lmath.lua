@@ -73,15 +73,15 @@ lmath.rotate_point=function(x1,y1,x2,y2,angle) --Point, Origin, Radians
 end
 
 --Data Types
-local vector2  = {}
-local vector3  = {}
-local matrix44 = {}
-local quat     = {}
-local rect     = {}
-local udim     = {}
-local udim2    = {}
-local color3   = {}
-local color4   = {}
+local vector2 = {}
+local vector3 = {}
+local mat44   = {}
+local quat    = {}
+local rect    = {}
+local udim    = {}
+local udim2   = {}
+local color3  = {}
+local color4  = {}
 
 ------------------------------[Vector2]------------------------------
 vector2.__index=function(a,k)
@@ -224,25 +224,25 @@ end
 vector3.lerp=lmath.lerp
 
 ------------------------------[Matrix 4x4]------------------------------
-matrix44.__index=matrix44
-matrix44.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
+mat44.__index=mat44
+mat44.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return setmetatable({
 		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
 		{a5 or 0,a6 or 0,a7 or 0,a8 or 0},
 		{a9 or 0,a10 or 0,a11 or 0,a12 or 0},
 		{a13 or 0,a14 or 0,a15 or 0,a16 or 0}
-	},matrix44)
+	},mat44)
 end
-matrix44.from_perspective=function(fov,aspect,near,far)
+mat44.from_perspective=function(fov,aspect,near,far)
 	local scale=tan(rad(fov)/2)
-	return matrix44.new(
+	return mat44.new(
 		1/(scale*aspect),0,0,0,
 		0,1/scale,0,0,
 		0,0,-(far+near)/(far-near),-1,
 		0,0,-(2*far*near)/(far-near),0
 	)
 end
-matrix44.__tostring=function(a)
+mat44.__tostring=function(a)
 	return ("%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f"):format(
 		a[1][1],a[1][2],a[1][3],a[1][4],
 		a[2][1],a[2][2],a[2][3],a[2][4],
@@ -250,47 +250,47 @@ matrix44.__tostring=function(a)
 		a[4][1],a[4][2],a[4][3],a[4][4]
 	)
 end
-matrix44.__unm=function(a)
-	return matrix44.new(
+mat44.__unm=function(a)
+	return mat44.new(
 		-a[1][1],-a[1][2],-a[1][3],-a[1][4],
 		-a[2][1],-a[2][2],-a[2][3],-a[2][4],
 		-a[3][1],-a[3][2],-a[3][3],-a[3][4],
 		-a[4][1],-a[4][2],-a[4][3],-a[4][4]
 	)
 end
-matrix44.__add=function(a,b)
-	return matrix44.new(
+mat44.__add=function(a,b)
+	return mat44.new(
 		a[1][1]+b[1][1],a[1][2]+b[1][2],a[1][3]+b[1][3],a[1][4]+b[1][4],
 		a[2][1]+b[2][1],a[2][2]+b[2][2],a[2][3]+b[2][3],a[2][4]+b[2][4],
 		a[3][1]+b[3][1],a[3][2]+b[3][2],a[3][3]+b[3][3],a[3][4]+b[3][4],
 		a[4][1]+b[4][1],a[4][2]+b[4][2],a[4][3]+b[4][3],a[4][4]+b[4][4]
 	)
 end
-matrix44.__sub=function(a,b)
-	return matrix44.new(
+mat44.__sub=function(a,b)
+	return mat44.new(
 		a[1][1]-b[1][1],a[1][2]-b[1][2],a[1][3]-b[1][3],a[1][4]-b[1][4],
 		a[2][1]-b[2][1],a[2][2]-b[2][2],a[2][3]-b[2][3],a[2][4]-b[2][4],
 		a[3][1]-b[3][1],a[3][2]-b[3][2],a[3][3]-b[3][3],a[3][4]-b[3][4],
 		a[4][1]-b[4][1],a[4][2]-b[4][2],a[4][3]-b[4][3],a[4][4]-b[4][4]
 	)
 end
-matrix44.__mul=function(a,b)
+mat44.__mul=function(a,b)
 	if type(a)=="number" then
-		return matrix44.new(
+		return mat44.new(
 			a*b[1][1],a*b[1][2],a*b[1][3],a*b[1][4],
 			a*b[2][1],a*b[2][2],a*b[2][3],a*b[2][4],
 			a*b[3][1],a*b[3][2],a*b[3][3],a*b[3][4],
 			a*b[4][1],a*b[4][2],a*b[4][3],a*b[4][4]
 		)
 	elseif type(b)=="number" then
-		return matrix44.new(
+		return mat44.new(
 			b*a[1][1],b*a[1][2],b*a[1][3],b*a[1][4],
 			b*a[2][1],b*a[2][2],b*a[2][3],b*a[2][4],
 			b*a[3][1],b*a[3][2],b*a[3][3],b*a[3][4],
 			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4]
 		)
 	else
-		return matrix44.new(
+		return mat44.new(
 			a[1][1]*b[1][1]+a[1][2]*b[2][1]+a[1][3]*b[3][1]+a[1][4]*b[4][1],
 			a[1][1]*b[1][2]+a[1][2]*b[2][2]+a[1][3]*b[3][2]+a[1][4]*b[4][2],
 			a[1][1]*b[1][3]+a[1][2]*b[2][3]+a[1][3]*b[3][3]+a[1][4]*b[4][3],
@@ -310,28 +310,28 @@ matrix44.__mul=function(a,b)
 		)
 	end
 end
-matrix44.__div=function(a,b)
+mat44.__div=function(a,b)
 	if type(a)=="number" then
-		return matrix44.new(
+		return mat44.new(
 			a/b[1][1],a/b[1][2],a/b[1][3],a/b[1][4],
 			a/b[2][1],a/b[2][2],a/b[2][3],a/b[2][4],
 			a/b[3][1],a/b[3][2],a/b[3][3],a/b[3][4],
 			a/b[4][1],a/b[4][2],a/b[4][3],a/b[4][4]
 		)
 	elseif type(b)=="number" then
-		return matrix44.new(
+		return mat44.new(
 			b/a[1][1],b/a[1][2],b/a[1][3],b/a[1][4],
 			b/a[2][1],b/a[2][2],b/a[2][3],b/a[2][4],
 			b/a[3][1],b/a[3][2],b/a[3][3],b/a[3][4],
 			b/a[4][1],b/a[4][2],b/a[4][3],b/a[4][4]
 		)
 	else
-		return matrix44.new(
+		return mat44.new(
 			
 		)
 	end
 end
-matrix44.__eq=function(a,b)
+mat44.__eq=function(a,b)
 	return (
 		a[1][1]==b[1][1] and a[1][2]==b[1][2] and a[1][3]==b[1][3] and a[1][4]==b[1][4] and
 		a[2][1]==b[2][1] and a[2][2]==b[2][2] and a[2][3]==b[2][3] and a[2][4]==b[2][4] and
@@ -339,7 +339,7 @@ matrix44.__eq=function(a,b)
 		a[4][1]==b[4][1] and a[4][2]==b[4][2] and a[4][3]==b[4][3] and a[4][4]==b[4][4]
 	)
 end
-matrix44.unpack=function(a)
+mat44.unpack=function(a)
 	return a[1][1],a[1][2],a[1][3],a[1][4],
 		a[2][1],a[2][2],a[2][3],a[2][4],
 		a[3][1],a[3][2],a[3][3],a[3][4],
@@ -505,7 +505,7 @@ color3.lerp=lmath.lerp
 
 lmath.vector2  = setmetatable(vector2,vector2)
 lmath.vector3  = setmetatable(vector3,vector3)
-lmath.matrix44 = setmetatable(matrix44,matrix44)
+lmath.mat44 = setmetatable(mat44,mat44)
 lmath.rect     = setmetatable(rect,rect)
 lmath.udim2    = setmetatable(udim2,udim2)
 lmath.color3   = setmetatable(color3,color3)
