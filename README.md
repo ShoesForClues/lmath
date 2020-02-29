@@ -19,15 +19,15 @@ print(b:cross(lmath.vector3.new(8,2,4))) --8, 40, -36
 
 # Data Types
 
-- **vector2**(x,y) --{x,y}
-- **vector3**(x,y,z) --{x,y,z}
-- **udim2**(x_scale,x_offset,y_scale,y_offset) --{x={offset,scale},y={offset,scale}}
-- **rect**(min_x,min_y,max_x,max_y) --{min_x,min_y,max_x,max_y}
-- **color3**(r,g,b) --{r,g,b}
+- **vector2**(x,y)
+- **vector3**(x,y,z)
+- **udim2**(x_scale,x_offset,y_scale,y_offset)
+- **rect**(min_x,min_y,max_x,max_y)
+- **color3**(r,g,b)
+- **mat44**(...)
 
 # To-Do
 
-- 4x4 Matrix
 - Quaternions
 - Color3 from HSV
 
