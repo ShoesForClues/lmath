@@ -23,12 +23,14 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,0,8};
+	_version={0,0,9};
 }
 
 --Primitives
 local sqrt  = math.sqrt
 local floor = math.floor
+local sin   = math.sin
+local cos   = math.cos
 local tan   = math.tan
 local rad   = math.rad
 local pi    = math.pi
@@ -62,6 +64,14 @@ lmath.round_multiple=function(num,multiple)
 	return floor(num/multiple+0.5)*multiple
 end
 
+lmath.rotate_point=function(x1,y1,x2,y2,angle) --Point, Origin, Radians
+	local s=sin(angle)
+	local c=cos(angle)
+	x1=x1-x2
+	y1=y1-y2
+	return (x1*c-y1*s)+x2,(x1*s+y1*c)+y2
+end
+
 --Data Types
 local vector2  = {}
 local vector3  = {}
@@ -76,13 +86,19 @@ local color4   = {}
 ------------------------------[Vector2]------------------------------
 vector2.__index=function(a,k)
 	if k=="magnitude" then
+		--[[
 		local magnitude=sqrt(a.x^2+a.y^2)
 		rawset(a,"magnitude",magnitude)
 		return magnitude
+		]]
+		return sqrt(a.x^2+a.y^2)
 	elseif k=="unit" then
+		--[[
 		local unit=a/a.magnitude
 		rawset(a,"unit",unit)
 		return unit
+		]]
+		return a/a.magnitude
 	end
 end
 vector2.new=function(x,y)
@@ -130,6 +146,9 @@ end
 vector2.cross=function(a,b)
 	return (a.x*b.y)-(a.y*b.x);
 end
+vector2.rotate=function(a,b,angle)
+	return vector2.new(lmath.rotate(a.x,a.y,b.x,b.y,angle))
+end
 vector2.unpack=function(a)
 	return a.x,a.y
 end
@@ -138,13 +157,19 @@ vector2.lerp=lmath.lerp
 ------------------------------[Vector3]------------------------------
 vector3.__index=function(a,k)
 	if k=="magnitude" then
+		--[[
 		local magnitude=sqrt(a.x^2+a.y^2+a.z^2)
 		rawset(a,"magnitude",magnitude)
 		return magnitude
+		]]
+		return sqrt(a.x^2+a.y^2+a.z^2)
 	elseif k=="unit" then
+		--[[
 		local unit=a/a.magnitude
 		rawset(a,"unit",unit)
 		return unit
+		]]
+		return a/a.magnitude
 	end
 end
 vector3.new=function(x,y,z)
@@ -266,7 +291,22 @@ matrix44.__mul=function(a,b)
 		)
 	else
 		return matrix44.new(
-			
+			a[1][1]*b[1][1]+a[1][2]*b[2][1]+a[1][3]*b[3][1]+a[1][4]*b[4][1],
+			a[1][1]*b[1][2]+a[1][2]*b[2][2]+a[1][3]*b[3][2]+a[1][4]*b[4][2],
+			a[1][1]*b[1][3]+a[1][2]*b[2][3]+a[1][3]*b[3][3]+a[1][4]*b[4][3],
+			a[1][1]*b[1][4]+a[1][2]*b[2][4]+a[1][3]*b[3][4]+a[1][4]*b[4][4],
+			a[2][1]*b[1][1]+a[2][2]*b[2][1]+a[2][3]*b[3][1]+a[2][4]*b[4][1],
+			a[2][1]*b[1][2]+a[2][2]*b[2][2]+a[2][3]*b[3][2]+a[2][4]*b[4][2],
+			a[2][1]*b[1][3]+a[2][2]*b[2][3]+a[2][3]*b[3][3]+a[2][4]*b[4][3],
+			a[2][1]*b[1][4]+a[2][2]*b[2][4]+a[2][3]*b[3][4]+a[2][4]*b[4][4],
+			a[3][1]*b[1][1]+a[3][2]*b[2][1]+a[3][3]*b[3][1]+a[3][4]*b[4][1],
+			a[3][1]*b[1][2]+a[3][2]*b[2][2]+a[3][3]*b[3][2]+a[3][4]*b[4][2],
+			a[3][1]*b[1][3]+a[3][2]*b[2][3]+a[3][3]*b[3][3]+a[3][4]*b[4][3],
+			a[3][1]*b[1][4]+a[3][2]*b[2][4]+a[3][3]*b[3][4]+a[3][4]*b[4][4],
+			a[4][1]*b[1][1]+a[4][2]*b[2][1]+a[4][3]*b[3][1]+a[4][4]*b[4][1],
+			a[4][1]*b[1][2]+a[4][2]*b[2][2]+a[4][3]*b[3][2]+a[4][4]*b[4][2],
+			a[4][1]*b[1][3]+a[4][2]*b[2][3]+a[4][3]*b[3][3]+a[4][4]*b[4][3],
+			a[4][1]*b[1][4]+a[4][2]*b[2][4]+a[4][3]*b[3][4]+a[4][4]*b[4][4]
 		)
 	end
 end
