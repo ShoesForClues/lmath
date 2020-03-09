@@ -548,7 +548,7 @@ cframe.__unm=function(a,o)
 end
 cframe.__add=function(a,b,o) --b must be vector3
 	return cframe.new(
-		a.x-b.x,a.y-b.y,a.z-b.z,
+		a.x+b.x,a.y+b.y,a.z+b.z,
 		a.r11,a.r12,a.r13,
 		a.r21,a.r22,a.r23,
 		a.r31,a.r32,a.r33,
