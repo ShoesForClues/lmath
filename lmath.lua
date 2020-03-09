@@ -277,7 +277,7 @@ mat4.from_identity=function(o)
 	)
 end
 mat4.__tostring=function(a)
-	return ("%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f\t%f, %f, %f, %f"):format(a:unpack())
+	return ("%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f"):format(a:unpack())
 end
 mat4.__unm=function(a)
 	return mat4.new(
@@ -419,7 +419,8 @@ mat4.transpose=function(a,o)
 	)
 end
 mat4.unpack=function(a)
-	return a[1][1],a[1][2],a[1][3],a[1][4],
+	return
+		a[1][1],a[1][2],a[1][3],a[1][4],
 		a[2][1],a[2][2],a[2][3],a[2][4],
 		a[3][1],a[3][2],a[3][3],a[3][4],
 		a[4][1],a[4][2],a[4][3],a[4][4]
@@ -465,9 +466,9 @@ cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33,o)
 		r31=0,r32=0,r33=0
 	},cframe)
 	o.x,o.y,o.z=x or 0,y or 0,z or 0
-	o.r11,o.r12,o.r13=r11 or 0,r12 or 0,r13 or 0
-	o.r21,o.r22,o.r23=r21 or 0,r22 or 0,r23 or 0
-	o.r31,o.r32,o.r33=r31 or 0,r32 or 0,r33 or 0
+	o.r11,o.r12,o.r13=r11 or 1,r12 or 0,r13 or 0
+	o.r21,o.r22,o.r23=r21 or 0,r22 or 1,r23 or 0
+	o.r31,o.r32,o.r33=r31 or 0,r32 or 0,r33 or 1
 	return o
 end
 cframe.from_lookat=function(position,front,up,o)
@@ -496,41 +497,26 @@ cframe.from_euler=function(pitch,yaw,roll,o)
 	)
 end
 cframe.from_position=function(x,y,z,o)
-	local ch,sh=cos(0),sin(0)
-	local ca,sa=cos(0),sin(0)
-	local cb,sb=cos(0),sin(0)
 	return cframe.new(
 		x,y,z,
-		ch*ca,sh*sb-ch*sa*cb,ch*sa*sb+sh*cb,
-		sa,ca*cb,-ca*sb,
-		-sh*ca,sh*sa*cb+ch*sb,-sh*sa*sb+ch*cb,
+		1,0,0,
+		0,1,0,
+		0,0,1,
 		o
 	)
 end
-cframe.from_position_euler=function(x,y,z,pitch,yaw,roll,o)
-	local cb,sb=cos(pitch),sin(pitch)
-	local ch,sh=cos(yaw),sin(yaw)
-	local ca,sa=cos(roll),sin(roll)
-	return cframe.new(
-		x,y,z,
-		ch*ca,sh*sb-ch*sa*cb,ch*sa*sb+sh*cb,
-		sa,ca*cb,-ca*sb,
-		-sh*ca,sh*sa*cb+ch*sb,-sh*sa*sb+ch*cb,
-		o
-	)
-end
-cframe.from_quat=function(i,j,k,w)
+cframe.from_quat=function(x,y,z,w)
 	return cframe.new(
 		0,0,0,
-		1-2*j^2-2*k^2,
-		2*(i*j-k*w),
-		2*(i*k+j*w),
-		2*(i*j+k*w),
-		1-2*i^2-2*k^2,
-		2*(j*k-i*w),
-		2*(i*k-j*w),
-		2*(j*k+i*w),
-		1-2*i^2-2*j^2,
+		1-2*y^2-2*z^2,
+		2*(x*y-z*w),
+		2*(x*z+y*w),
+		2*(x*y+z*w),
+		1-2*x^2-2*z^2,
+		2*(y*z-x*w),
+		2*(x*z-y*w),
+		2*(y*z+x*w),
+		1-2*x^2-2*y^2,
 		o
 	)
 end
@@ -598,6 +584,37 @@ cframe.__mul=function(a,b,o)
 			o
 		)
 	end
+end
+cframe.inverse=function(a,o)
+	local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
+	local det=(
+		a11*a22*a33*1+a11*a23*a34*0+a11*a24*a32*0+
+		a12*a21*a34*0+a12*a23*a31*1+a12*a24*a33*0+
+		a13*a21*a32*1+a13*a22*a34*0+a13*a24*a31*0+
+		a14*a21*a33*0+a14*a22*a31*0+a14*a23*a32*0-
+		a11*a22*a34*0-a11*a23*a32*1-a11*a24*a33*0-
+		a12*a21*a33*1-a12*a23*a34*0-a12*a24*a31*0-
+		a13*a21*a34*0-a13*a22*a31*1-a13*a24*a32*0-
+		a14*a21*a32*0-a14*a22*a33*0-a14*a23*a31*0
+	)
+	if det==0 then
+		return cframe.new(a:unpack(),o)
+	end
+	return cframe.new(
+		(a12*a24*a33+a13*a22*a34+a14*a23*a32-a12*a23*a34-a13*a24*a32-a14*a22*a33)/det,
+		(a11*a23*a34+a13*a24*a31+a14*a21*a33-a11*a24*a33-a13*a21*a34-a14*a23*a31)/det,
+		(a11*a24*a32+a12*a21*a34+a14*a22*a31-a11*a22*a34-a12*a24*a31-a14*a21*a32)/det,
+		(a22*a33*1+a23*a34*0+a24*a32*0-a22*a34*0-a23*a32*1-a24*a33*0)/det,
+		(a12*a34*0+a13*a32*1+a14*a33*0-a12*a33*1-a13*a34*0-a14*a32*0)/det,
+		(a12*a23*1+a13*a24*0+a14*a22*0-a12*a24*0-a13*a22*1-a14*a23*0)/det,
+		(a21*a34*0+a23*a31*1+a24*a33*0-a21*a33*1-a23*a34*0-a24*a31*0)/det,
+		(a11*a33*1+a13*a34*0+a14*a31*0-a11*a34*0-a13*a31*1-a14*a33*0)/det,
+		(a11*a24*0+a13*a21*1+a14*a23*0-a11*a23*1-a13*a24*0-a14*a21*0)/det,
+		(a21*a32*1+a22*a34*0+a24*a31*0-a21*a34*0-a22*a31*1-a24*a32*0)/det,
+		(a11*a34*0+a12*a31*1+a14*a32*0-a11*a32*1-a12*a34*0-a14*a31*0)/det,
+		(a11*a22*1+a12*a24*0+a14*a21*0-a11*a24*0-a12*a21*1-a14*a22*0)/det,
+		o
+	)
 end
 cframe.to_euler=function(a,o)
 	return
@@ -832,8 +849,6 @@ color3.lerp=function(a,b,t,o)
 		color3.__mul(b,t),o
 	)
 end
-
-------------------------------------------------------------
 
 --Initialize Data Types
 lmath.vector2 = setmetatable(vector2,vector2)
