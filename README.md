@@ -25,6 +25,7 @@ print(b:cross(lmath.vector3.new(8,2,4))) --8, 40, -36
 - **rect**(min_x,min_y,max_x,max_y)
 - **color3**(r,g,b)
 - **mat4**(...)
+- **cframe**(...)
 
 # To-Do
 
