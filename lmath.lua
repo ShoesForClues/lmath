@@ -23,7 +23,7 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,1,0};
+	_version={0,1,2};
 }
 
 --Primitives
@@ -91,7 +91,10 @@ local unit_x,unit_y,unit_z
 
 --Temp
 local temp_mat4
-local temp_vector3
+local temp_vector2_1
+local temp_vector2_2
+local temp_vector3_1
+local temp_vector3_2
 
 ------------------------------[Vector2]------------------------------
 vector2.__index=vector2
@@ -153,8 +156,8 @@ vector2.unpack=function(a)
 end
 vector2.lerp=function(a,b,t,o)
 	return vector2.__add(
-		vector2.__mul(a,(1-t)),
-		vector2.__mul(b,t),o
+		vector2.__mul(a,(1-t),temp_vector2_1),
+		vector2.__mul(b,t,temp_vector2_2),o
 	)
 end
 
@@ -231,8 +234,8 @@ vector3.unpack=function(a)
 end
 vector3.lerp=function(a,b,t,o)
 	return vector3.__add(
-		vector3.__mul(a,(1-t)),
-		vector3.__mul(b,t),o
+		vector3.__mul(a,(1-t),temp_vector3_1),
+		vector3.__mul(b,t,temp_vector3_2),o
 	)
 end
 
@@ -399,11 +402,11 @@ mat4.rotate=function(a,angle,axis,o)
 	temp_mat4[4][4]=1
 	return mat4.__mul(temp_mat4,a,o)
 end
-mat4.translate=function(a,t,o)
+mat4.translate=function(a,p,o)
 	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,0
 	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,0
 	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,0
-	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=t.x,t.y,t.z,1
+	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=p.x,p.y,p.z,1
 	return mat4.__mul(temp_mat4,a,o)
 end
 mat4.transpose=function(a,o)
@@ -468,9 +471,9 @@ cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33,o)
 	return o
 end
 cframe.from_lookat=function(position,front,up,o)
-	local x_axis=up:cross(front)
+	local x_axis=up:cross(front,temp_vector3_1)
 	x_axis=vector3.normalize(x_axis,x_axis)
-	local y_axis=front:cross(x_axis)
+	local y_axis=front:cross(x_axis,temp_vector3_2)
 	y_axis=vector3.normalize(y_axis,y_axis)
 	return cframe.new(
 		position.x,position.y,position.z,
@@ -480,10 +483,10 @@ cframe.from_lookat=function(position,front,up,o)
 		o
 	)
 end
-cframe.from_euler=function(rx,ry,rz,o)
-	local ch,sh=cos(rx),sin(rx)
-	local ca,sa=cos(ry),sin(ry)
-	local cb,sb=cos(rz),sin(rz)
+cframe.from_euler=function(pitch,yaw,roll,o)
+	local cb,sb=cos(pitch),sin(pitch)
+	local ch,sh=cos(yaw),sin(yaw)
+	local ca,sa=cos(roll),sin(roll)
 	return cframe.new(
 		0,0,0,
 		ch*ca,sh*sb-ch*sa*cb,ch*sa*sb+sh*cb,
@@ -504,10 +507,10 @@ cframe.from_position=function(x,y,z,o)
 		o
 	)
 end
-cframe.from_position_euler=function(x,y,z,rx,ry,rz,o)
-	local ch,sh=cos(rx),sin(rx)
-	local ca,sa=cos(ry),sin(ry)
-	local cb,sb=cos(rz),sin(rz)
+cframe.from_position_euler=function(x,y,z,pitch,yaw,roll,o)
+	local cb,sb=cos(pitch),sin(pitch)
+	local ch,sh=cos(yaw),sin(yaw)
+	local ca,sa=cos(roll),sin(roll)
 	return cframe.new(
 		x,y,z,
 		ch*ca,sh*sb-ch*sa*cb,ch*sa*sb+sh*cb,
@@ -563,25 +566,30 @@ cframe.__sub=function(a,b,o) --b must be vector3
 end
 cframe.__mul=function(a,b,o)
 	if getmetatable(b)==vector3 then
-		local _,_,_,m11,m12,m13,m21,m22,m23,m31,m32,m33=a:unpack()
-		local right=vector3.new(m11,m21,m31)
-		local top=vector3.new(m12,m22,m32)
-		local back=vector3.new(m13,m23,m33)
-		return vector3.new((cf.p+b.x*right+b.y*top+b.z*back):unpack(),o)
+		return vector3.new(
+			a.x+b.x*a.r11+b.y*a.r12+b.z*a.r13,
+			a.y+b.x*a.r21+b.y*a.r22+b.z*a.r23,
+			a.z+b.x*a.r31+b.y*a.r32+b.z*a.r33,
+			o
+		)
 	else
 		local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
 		local b14,b24,b34,b11,b12,b13,b21,b22,b23,b31,b32,b33=b:unpack()
-		local c=mat4.__mul(mat4.new(
-			a11,a12,a13,a14,
-			a21,a22,a23,a24,
-			a31,a32,a33,a34,
-			0,0,0,1
-		),mat4.new(
-			b11,b12,b13,b14,
-			b21,b22,b23,b24,
-			b31,b32,b33,b34,
-			0,0,0,1
-		))
+		local c=mat4.__mul(
+			mat4.new(
+				a11,a12,a13,a14,
+				a21,a22,a23,a24,
+				a31,a32,a33,a34,
+				0,0,0,1
+			),
+			mat4.new(
+				b11,b12,b13,b14,
+				b21,b22,b23,b24,
+				b31,b32,b33,b34,
+				0,0,0,1
+			),
+			temp_mat4
+		)
 		return cframe.new(
 			c[1][4],c[2][4],c[3][4],
 			c[1][1],c[1][2],c[1][3],
@@ -843,7 +851,10 @@ unit_y = lmath.vector3.new(0,1,0)
 unit_z = lmath.vector3.new(0,0,1)
 
 --Initialize Temps
-temp_mat4    = lmath.mat4.new()
-temp_vector3 = lmath.vector3.new()
+temp_mat4      = lmath.mat4.new()
+temp_vector2_1 = lmath.vector2.new()
+temp_vector2_2 = lmath.vector2.new()
+temp_vector3_1 = lmath.vector3.new()
+temp_vector3_2 = lmath.vector3.new()
 
 return lmath
