@@ -35,6 +35,7 @@ local tan   = math.tan
 local rad   = math.rad
 local atan  = math.atan
 local atan2 = math.atan2
+local asin  = math.asin
 local pi    = math.pi
 local tpi   = pi*2
 
@@ -51,7 +52,6 @@ end
 lmath.lerp=function(start,goal,t)
 	return start*(1-t)+goal*t
 end
-
 lmath.alerp=function(start,goal,percent)
 	local shortest_angle=((((goal-start)%tpi)+rad(540))%tpi)-pi
 	return start+(shortest_angle*percent)%tpi
@@ -61,7 +61,6 @@ lmath.round=function(num,decimal_place)
 	local mult=10^(decimal_place or 0)
 	return floor(num*mult+0.5)/mult
 end
-
 lmath.round_multiple=function(num,multiple)
 	return floor(num/multiple+0.5)*multiple
 end
@@ -98,39 +97,40 @@ local temp_vector3_2
 
 ------------------------------[Vector2]------------------------------
 vector2.__index=vector2
-vector2.new=function(x,y,o)
-	o=o or setmetatable({x=0,y=0},vector2)
-	o.x,o.y=x or 0,y or 0
-	return o
+vector2.new=function(x,y)
+	return setmetatable({
+		x=x or 0,
+		y=y or 0
+	},vector2)
 end
 vector2.__tostring=function(a)
 	return ("%f, %f"):format(a:unpack())
 end
-vector2.__unm=function(a,o)
-	return vector2.new(-a.x,-a.y,o)
+vector2.__unm=function(a)
+	return vector2.new(-a.x,-a.y)
 end
-vector2.__add=function(a,b,o)
-	return vector2.new(a.x+b.x,a.y+b.y,o)
+vector2.__add=function(a,b)
+	return vector2.new(a.x+b.x,a.y+b.y)
 end
-vector2.__sub=function(a,b,o)
-	return vector2.new(a.x-b.x,a.y-b.y,o)
+vector2.__sub=function(a,b)
+	return vector2.new(a.x-b.x,a.y-b.y)
 end
-vector2.__mul=function(a,b,o)
+vector2.__mul=function(a,b)
 	if type(a)=="number" then
-		return vector2.new(a*b.x,a*b.y,o)
+		return vector2.new(a*b.x,a*b.y)
 	elseif type(b)=="number" then
-		return vector2.new(a.x*b,a.y*b,o)
+		return vector2.new(a.x*b,a.y*b)
 	else
-		return vector2.new(a.x*b.x,a.y*b.y,o)
+		return vector2.new(a.x*b.x,a.y*b.y)
 	end
 end
-vector2.__div=function(a,b,o)
+vector2.__div=function(a,b)
 	if type(a)=="number" then
-		return vector2.new(a/b.x,a/b.y,o)
+		return vector2.new(a/b.x,a/b.y)
 	elseif type(b)=="number" then
-		return vector2.new(a.x/b,a.y/b,o)
+		return vector2.new(a.x/b,a.y/b)
 	else
-		return vector2.new(a.x/b.x,a.y/b.y,o)
+		return vector2.new(a.x/b.x,a.y/b.y)
 	end
 end
 vector2.__eq=function(a,b)
@@ -139,8 +139,8 @@ end
 vector2.magnitude=function(a)
 	return sqrt(a.x^2+a.y^2)
 end
-vector2.normalize=function(a,o)
-	return vector2.__div(a,a:magnitude(),o)
+vector2.normalize=function(a)
+	return vector2.__div(a,a:magnitude())
 end
 vector2.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)
@@ -148,43 +148,45 @@ end
 vector2.cross=function(a,b)
 	return (a.x*b.y)-(a.y*b.x);
 end
-vector2.rotate=function(a,b,angle,o)
-	return vector2.new(lmath.rotate(a.x,a.y,b.x,b.y,angle),o)
+vector2.rotate=function(a,b,angle)
+	return vector2.new(lmath.rotate(a.x,a.y,b.x,b.y,angle))
 end
 vector2.unpack=function(a)
 	return a.x,a.y
 end
-vector2.lerp=function(a,b,t,o)
+vector2.lerp=function(a,b,t)
 	return vector2.__add(
 		vector2.__mul(a,(1-t),temp_vector2_1),
-		vector2.__mul(b,t,temp_vector2_2),o
+		vector2.__mul(b,t,temp_vector2_2)
 	)
 end
 
 ------------------------------[Vector3]------------------------------
 vector3.__index=vector3
-vector3.new=function(x,y,z,o)
-	o=o or setmetatable({x=0,y=0,z=0},vector3)
-	o.x,o.y,o.z=x or 0,y or 0,z or 0
-	return o
+vector3.new=function(x,y,z)
+	return setmetatable({
+		x=x or 0,
+		y=y or 0,
+		z=z or 0
+	},vector3)
 end
 vector3.__tostring=function(a)
 	return ("%f, %f, %f"):format(a:unpack())
 end
-vector3.__unm=function(a,o)
-	return vector3.new(-a.x,-a.y,-a.z,o)
+vector3.__unm=function(a)
+	return vector3.new(-a.x,-a.y,-a.z)
 end
-vector3.__add=function(a,b,o)
-	return vector3.new(a.x+b.x,a.y+b.y,a.z+b.z,o)
+vector3.__add=function(a,b)
+	return vector3.new(a.x+b.x,a.y+b.y,a.z+b.z)
 end
-vector3.__sub=function(a,b,o)
-	return vector3.new(a.x-b.x,a.y-b.y,a.z-b.z,o)
+vector3.__sub=function(a,b)
+	return vector3.new(a.x-b.x,a.y-b.y,a.z-b.z)
 end
-vector3.__mul=function(a,b,o)
+vector3.__mul=function(a,b)
 	if type(a)=="number" then
-		return vector3.new(a*b.x,a*b.y,a*b.z,o)
+		return vector3.new(a*b.x,a*b.y,a*b.z)
 	elseif type(b)=="number" then
-		return vector3.new(a.x*b,a.y*b,a.z*b,o)
+		return vector3.new(a.x*b,a.y*b,a.z*b)
 	elseif getmetatable(b)==mat4 then
 		local x=a.x*b[1][1]+a.y*b[2][1]+a.z*b[3][1]+b[4][1]
 		local y=a.x*b[1][2]+a.y*b[2][2]+a.z*b[3][2]+b[4][2]
@@ -195,18 +197,18 @@ vector3.__mul=function(a,b,o)
 			y=y/w
 			z=z/w
 		end
-		return vector3.new(x,y,z,o)
+		return vector3.new(x,y,z)
 	else
-		return vector3.new(a.x*b.x,a.y*b.y,a.z*b.z,o)
+		return vector3.new(a.x*b.x,a.y*b.y,a.z*b.z)
 	end
 end
-vector3.__div=function(a,b,o)
+vector3.__div=function(a,b)
 	if type(a)=="number" then
-		return vector3.new(a/b.x,a/b.y,a/b.z,o)
+		return vector3.new(a/b.x,a/b.y,a/b.z)
 	elseif type(b)=="number" then
-		return vector3.new(a.x/b,a.y/b,a.z/b,o)
+		return vector3.new(a.x/b,a.y/b,a.z/b)
 	else
-		return vector3.new(a.x/b.x,a.y/b.y,a.z/b.z,o)
+		return vector3.new(a.x/b.x,a.y/b.y,a.z/b.z)
 	end
 end
 vector3.__eq=function(a,b)
@@ -215,65 +217,64 @@ end
 vector3.magnitude=function(a)
 	return sqrt(a.x^2+a.y^2+a.z^2)
 end
-vector3.normalize=function(a,o)
-	return vector3.__div(a,a:magnitude(),o)
+vector3.normalize=function(a)
+	return vector3.__div(a,a:magnitude())
 end
 vector3.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)+(a.z*b.z)
 end
-vector3.cross=function(a,b,o)
+vector3.cross=function(a,b)
 	return vector3.new(
 		a.y*b.z-a.z*b.y,
 		a.z*b.x-a.x*b.z,
-		a.x*b.y-a.y*b.x,
-		o
+		a.x*b.y-a.y*b.x
 	)
 end
 vector3.unpack=function(a)
 	return a.x,a.y,a.z
 end
-vector3.lerp=function(a,b,t,o)
+vector3.lerp=function(a,b,t)
 	return vector3.__add(
 		vector3.__mul(a,(1-t),temp_vector3_1),
-		vector3.__mul(b,t,temp_vector3_2),o
+		vector3.__mul(b,t,temp_vector3_2)
 	)
 end
 
 ------------------------------[Mat4]------------------------------
 mat4.__index=mat4
-mat4.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,o)
-	o=o or setmetatable({
-		{0,0,0,0},
-		{0,0,0,0},
-		{0,0,0,0},
-		{0,0,0,0}
+mat4.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
+	return setmetatable({
+		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
+		{a5 or 0,a6 or 0,a7 or 0,a8 or 0},
+		{a9 or 0,a10 or 0,a11 or 0,a12 or 0},
+		{a13 or 0,a14 or 0,a15 or 0,a16 or 0}
 	},mat4)
-	o[1][1],o[1][2],o[1][3],o[1][4]=a1 or 0,a2 or 0,a3 or 0,a4 or 0
-	o[2][1],o[2][2],o[2][3],o[2][4]=a5 or 0,a6 or 0,a7 or 0,a8 or 0
-	o[3][1],o[3][2],o[3][3],o[3][4]=a9 or 0,a10 or 0,a11 or 0,a12 or 0
-	o[4][1],o[4][2],o[4][3],o[4][4]=a13 or 0,a14 or 0,a15 or 0,a16 or 0
-	return o
 end
-mat4.from_perspective=function(fov,aspect,near,far,o)
+mat4.from_perspective=function(fov,aspect,near,far)
 	local scale=tan(rad(fov)/2)
 	return mat4.new(
 		1/(scale*aspect),0,0,0,
 		0,1/scale,0,0,
 		0,0,-(far+near)/(far-near),-1,
-		0,0,-(2*far*near)/(far-near),0,
-		o
+		0,0,-(2*far*near)/(far-near),0
 	)
 end
-mat4.from_orthographic=function()
-	
+mat4.from_orthographic=function(left,right,top,bottom,near,far)
+	return mat4.new(
+		2/(right-left),0,0,0,
+		0,2/(top-bottom),0,0,
+		0,0,-2/(far-near),0,
+		-((right+left)/(right-left)),
+		-((top+bottom)/(top-bottom)),
+		-((far+near)/(far-near)),1
+	)
 end
-mat4.from_identity=function(o)
+mat4.from_identity=function()
 	return mat4.new(
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
-		0,0,0,1,
-		o
+		0,0,0,1
 	)
 end
 mat4.__tostring=function(a)
@@ -284,8 +285,7 @@ mat4.__unm=function(a)
 		-a[1][1],-a[1][2],-a[1][3],-a[1][4],
 		-a[2][1],-a[2][2],-a[2][3],-a[2][4],
 		-a[3][1],-a[3][2],-a[3][3],-a[3][4],
-		-a[4][1],-a[4][2],-a[4][3],-a[4][4],
-		o
+		-a[4][1],-a[4][2],-a[4][3],-a[4][4]
 	)
 end
 mat4.__add=function(a,b)
@@ -293,35 +293,31 @@ mat4.__add=function(a,b)
 		a[1][1]+b[1][1],a[1][2]+b[1][2],a[1][3]+b[1][3],a[1][4]+b[1][4],
 		a[2][1]+b[2][1],a[2][2]+b[2][2],a[2][3]+b[2][3],a[2][4]+b[2][4],
 		a[3][1]+b[3][1],a[3][2]+b[3][2],a[3][3]+b[3][3],a[3][4]+b[3][4],
-		a[4][1]+b[4][1],a[4][2]+b[4][2],a[4][3]+b[4][3],a[4][4]+b[4][4],
-		o
+		a[4][1]+b[4][1],a[4][2]+b[4][2],a[4][3]+b[4][3],a[4][4]+b[4][4]
 	)
 end
-mat4.__sub=function(a,b,o)
+mat4.__sub=function(a,b)
 	return mat4.new(
 		a[1][1]-b[1][1],a[1][2]-b[1][2],a[1][3]-b[1][3],a[1][4]-b[1][4],
 		a[2][1]-b[2][1],a[2][2]-b[2][2],a[2][3]-b[2][3],a[2][4]-b[2][4],
 		a[3][1]-b[3][1],a[3][2]-b[3][2],a[3][3]-b[3][3],a[3][4]-b[3][4],
-		a[4][1]-b[4][1],a[4][2]-b[4][2],a[4][3]-b[4][3],a[4][4]-b[4][4],
-		o
+		a[4][1]-b[4][1],a[4][2]-b[4][2],a[4][3]-b[4][3],a[4][4]-b[4][4]
 	)
 end
-mat4.__mul=function(a,b,o)
+mat4.__mul=function(a,b)
 	if type(a)=="number" then
 		return mat4.new(
 			a*b[1][1],a*b[1][2],a*b[1][3],a*b[1][4],
 			a*b[2][1],a*b[2][2],a*b[2][3],a*b[2][4],
 			a*b[3][1],a*b[3][2],a*b[3][3],a*b[3][4],
-			a*b[4][1],a*b[4][2],a*b[4][3],a*b[4][4],
-			o
+			a*b[4][1],a*b[4][2],a*b[4][3],a*b[4][4]
 		)
 	elseif type(b)=="number" then
 		return mat4.new(
 			b*a[1][1],b*a[1][2],b*a[1][3],b*a[1][4],
 			b*a[2][1],b*a[2][2],b*a[2][3],b*a[2][4],
 			b*a[3][1],b*a[3][2],b*a[3][3],b*a[3][4],
-			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4],
-			o
+			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4]
 		)
 	else
 		return mat4.new(
@@ -340,27 +336,24 @@ mat4.__mul=function(a,b,o)
 			a[4][1]*b[1][1]+a[4][2]*b[2][1]+a[4][3]*b[3][1]+a[4][4]*b[4][1],
 			a[4][1]*b[1][2]+a[4][2]*b[2][2]+a[4][3]*b[3][2]+a[4][4]*b[4][2],
 			a[4][1]*b[1][3]+a[4][2]*b[2][3]+a[4][3]*b[3][3]+a[4][4]*b[4][3],
-			a[4][1]*b[1][4]+a[4][2]*b[2][4]+a[4][3]*b[3][4]+a[4][4]*b[4][4],
-			o
+			a[4][1]*b[1][4]+a[4][2]*b[2][4]+a[4][3]*b[3][4]+a[4][4]*b[4][4]
 		)
 	end
 end
-mat4.__div=function(a,b,o)
+mat4.__div=function(a,b)
 	if type(a)=="number" then
 		return mat4.new(
 			a/b[1][1],a/b[1][2],a/b[1][3],a/b[1][4],
 			a/b[2][1],a/b[2][2],a/b[2][3],a/b[2][4],
 			a/b[3][1],a/b[3][2],a/b[3][3],a/b[3][4],
-			a/b[4][1],a/b[4][2],a/b[4][3],a/b[4][4],
-			o
+			a/b[4][1],a/b[4][2],a/b[4][3],a/b[4][4]
 		)
 	elseif type(b)=="number" then
 		return mat4.new(
 			b/a[1][1],b/a[1][2],b/a[1][3],b/a[1][4],
 			b/a[2][1],b/a[2][2],b/a[2][3],b/a[2][4],
 			b/a[3][1],b/a[3][2],b/a[3][3],b/a[3][4],
-			b/a[4][1],b/a[4][2],b/a[4][3],b/a[4][4],
-			o
+			b/a[4][1],b/a[4][2],b/a[4][3],b/a[4][4]
 		)
 	else
 		return mat4.new(
@@ -376,7 +369,7 @@ mat4.__eq=function(a,b)
 		a[4][1]==b[4][1] and a[4][2]==b[4][2] and a[4][3]==b[4][3] and a[4][4]==b[4][4]
 	)
 end
-mat4.rotate=function(a,angle,axis,o)
+mat4.rotate=function(a,angle,axis)
 	local l=axis:magnitude()
 	if l==0 then
 		return a
@@ -400,22 +393,28 @@ mat4.rotate=function(a,angle,axis,o)
 	temp_mat4[4][2]=0
 	temp_mat4[4][3]=0
 	temp_mat4[4][4]=1
-	return mat4.__mul(temp_mat4,a,o)
+	return mat4.__mul(temp_mat4,a)
 end
-mat4.translate=function(a,p,o)
+mat4.translate_column=function(a,p)
 	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,0
 	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,0
 	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,0
 	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=p.x,p.y,p.z,1
-	return mat4.__mul(temp_mat4,a,o)
+	return mat4.__mul(temp_mat4,a)
 end
-mat4.transpose=function(a,o)
+mat4.translate_row=function(a,p)
+	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,p.x
+	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,p.y
+	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,p.z
+	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=0,0,0,1
+	return mat4.__mul(temp_mat4,a)
+end
+mat4.transpose=function(a)
 	return mat4.new(
 		a[1][1],a[2][1],a[3][1],a[4][1],
 		a[1][2],a[2][2],a[3][2],a[4][2],
 		a[1][3],a[2][3],a[3][3],a[4][3],
-		a[1][4],a[2][4],a[3][4],a[4][4],
-		o
+		a[1][4],a[2][4],a[3][4],a[4][4]
 	)
 end
 mat4.unpack=function(a)
@@ -428,12 +427,15 @@ end
 
 ------------------------------[Quat]------------------------------
 quat.__index=quat
-quat.new=function(x,y,z,w,o)
-	o=o or setmetatable({x=0,y=0,z=0,w=0},quat)
-	o.x,o.y,o.z,o.w=x or 0,y or 0,z or 0,w or 0
-	return o
+quat.new=function(x,y,z,w)
+	return setmetatable({
+		x=x or 0,
+		y=y or 0,
+		z=z or 0,
+		w=w or 0
+	},quat)
 end
-quat.from_euler=function(x,y,z,o)
+quat.from_euler=function(x,y,z)
 	local sx,cx=sin(x/2),cos(x/2)
 	local sy,cy=sin(y/2),cos(y/2)
 	local sz,cz=sin(z/2),cos(z/2)
@@ -441,13 +443,12 @@ quat.from_euler=function(x,y,z,o)
 		sz*cy*cx-cz*sy*sx,
 		cz*sy*cx+sz*cy*sx,
 		cz*cy*sx-sz*sy*cx,
-		cz*cy*cx+sz*sy*sx,
-		o
+		cz*cy*cx+sz*sy*sx
 	)
 end
-quat.from_axis=function(x,y,z,a,o)
+quat.from_axis=function(x,y,z,a)
 	local s=sin(a/2)
-	return quat.new(x*s,y*s,z*s,cos(a/2),o)
+	return quat.new(x*s,y*s,z*s,cos(a/2))
 end
 quat.__tostring=function(a)
 	return ("%f, %f, %f, %f"):format(a:unpack())
@@ -458,52 +459,47 @@ end
 
 ------------------------------[CFrame]------------------------------
 cframe.__index=cframe
-cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33,o)
-	o=o or setmetatable({
-		x=0,y=0,z=0,
-		r11=0,r12=0,r13=0,
-		r21=0,r22=0,r23=0,
-		r31=0,r32=0,r33=0
+cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33)
+	return setmetatable({
+		x=x or 0,y=y or 0,z=z or 0,
+		r11=r11 or 1,r12=r12 or 0,r13=r13 or 0,
+		r21=r21 or 0,r22=r22 or 1,r23=r23 or 0,
+		r31=r31 or 0,r32=r32 or 0,r33=r33 or 1
 	},cframe)
-	o.x,o.y,o.z=x or 0,y or 0,z or 0
-	o.r11,o.r12,o.r13=r11 or 1,r12 or 0,r13 or 0
-	o.r21,o.r22,o.r23=r21 or 0,r22 or 1,r23 or 0
-	o.r31,o.r32,o.r33=r31 or 0,r32 or 0,r33 or 1
-	return o
 end
-cframe.from_lookat=function(position,front,up,o)
-	local x_axis=up:cross(front,temp_vector3_1)
-	x_axis=vector3.normalize(x_axis,x_axis)
-	local y_axis=front:cross(x_axis,temp_vector3_2)
-	y_axis=vector3.normalize(y_axis,y_axis)
+cframe.from_lookat=function(position,front,up)
+	local x_axis=up:cross(front):normalize()
+	local y_axis=front:cross(x_axis):normalize()
 	return cframe.new(
 		position.x,position.y,position.z,
 		x_axis.x,y_axis.x,front.x,
 		x_axis.y,y_axis.y,front.y,
-		x_axis.z,y_axis.z,front.z,
-		o
+		x_axis.z,y_axis.z,front.z
 	)
 end
-cframe.from_euler=function(pitch,yaw,roll,o)
-	local cb,sb=cos(pitch),sin(pitch)
-	local ch,sh=cos(yaw),sin(yaw)
-	local ca,sa=cos(roll),sin(roll)
+cframe.from_euler=function(x,y,z)
+	local cx,sx=cos(x),sin(x)
+	local cy,sy=cos(y),sin(y)
+	local cz,sz=cos(z),sin(z)
 	return cframe.new(
 		0,0,0,
-		ch*ca,sh*sb-ch*sa*cb,ch*sa*sb+sh*cb,
-		sa,ca*cb,-ca*sb,
-		-sh*ca,sh*sa*cb+ch*sb,-sh*sa*sb+ch*cb,
-		o
+		cy*cz,-cy*sz,sy,
+		cz*sx*sy+cx*sz,cx*cz-sx*sy*sz,-cy*sx,
+		sx*sz-cx*cz*sy,cz*sx+cx*sy*sz,cx*cy
 	)
 end
-cframe.from_position=function(x,y,z,o)
+cframe.from_axis=function(x,y,z,t)
+	local axis=vector3.new(x,y,z):normalize()
+	local ca,sa=cos(t),sin(t)
+	local r=unit_x*ca+unit_x:dot(axis)*axis*(1-ca)+axis:cross(unit_x)*sa
+	local t=unit_y*ca+unit_y:dot(axis)*axis*(1-ca)+axis:cross(unit_y)*sa
+	local b=unit_z*ca+unit_z:dot(axis)*axis*(1-ca)+axis:cross(unit_z)*sa
 	return cframe.new(
-		x,y,z,
-		1,0,0,
-		0,1,0,
-		0,0,1,
-		o
-	)
+		0,0,0,
+		r.x,t.x,b.x,
+		r.y,t.y,b.y,
+		r.z,t.z,b.z
+	);
 end
 cframe.from_quat=function(x,y,z,w)
 	return cframe.new(
@@ -516,47 +512,42 @@ cframe.from_quat=function(x,y,z,w)
 		2*(y*z-x*w),
 		2*(x*z-y*w),
 		2*(y*z+x*w),
-		1-2*x^2-2*y^2,
-		o
+		1-2*x^2-2*y^2
 	)
 end
 cframe.__tostring=function(a)
 	return ("%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f"):format(a:unpack())
 end
-cframe.__unm=function(a,o)
+cframe.__unm=function(a)
 	return cframe.new(
 		-a.x,-a.y,-a.z,
 		-a.r11,-a.r12,-a.r13,
 		-a.r21,-a.r22,-a.r23,
-		-a.r31,-a.r32,-a.r33,
-		o
+		-a.r31,-a.r32,-a.r33
 	)
 end
-cframe.__add=function(a,b,o) --b must be vector3
+cframe.__add=function(a,b) --b must be vector3
 	return cframe.new(
 		a.x+b.x,a.y+b.y,a.z+b.z,
 		a.r11,a.r12,a.r13,
 		a.r21,a.r22,a.r23,
-		a.r31,a.r32,a.r33,
-		o
+		a.r31,a.r32,a.r33
 	)
 end
-cframe.__sub=function(a,b,o) --b must be vector3
+cframe.__sub=function(a,b) --b must be vector3
 	return cframe.new(
 		a.x-b.x,a.y-b.y,a.z-b.z,
 		a.r11,a.r12,a.r13,
 		a.r21,a.r22,a.r23,
-		a.r31,a.r32,a.r33,
-		o
+		a.r31,a.r32,a.r33
 	)
 end
-cframe.__mul=function(a,b,o)
+cframe.__mul=function(a,b)
 	if getmetatable(b)==vector3 then
 		return vector3.new(
 			a.x+b.x*a.r11+b.y*a.r12+b.z*a.r13,
 			a.y+b.x*a.r21+b.y*a.r22+b.z*a.r23,
-			a.z+b.x*a.r31+b.y*a.r32+b.z*a.r33,
-			o
+			a.z+b.x*a.r31+b.y*a.r32+b.z*a.r33
 		)
 	else
 		local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
@@ -573,19 +564,17 @@ cframe.__mul=function(a,b,o)
 				b21,b22,b23,b24,
 				b31,b32,b33,b34,
 				0,0,0,1
-			),
-			temp_mat4
+			)
 		)
 		return cframe.new(
 			c[1][4],c[2][4],c[3][4],
 			c[1][1],c[1][2],c[1][3],
 			c[2][1],c[2][2],c[2][3],
-			c[3][1],c[3][2],c[3][3],
-			o
+			c[3][1],c[3][2],c[3][3]
 		)
 	end
 end
-cframe.inverse=function(a,o)
+cframe.inverse=function(a)
 	local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
 	local det=(
 		a11*a22*a33*1+a11*a23*a34*0+a11*a24*a32*0+
@@ -598,7 +587,7 @@ cframe.inverse=function(a,o)
 		a14*a21*a32*0-a14*a22*a33*0-a14*a23*a31*0
 	)
 	if det==0 then
-		return cframe.new(a:unpack(),o)
+		return a
 	end
 	return cframe.new(
 		(a12*a24*a33+a13*a22*a34+a14*a23*a32-a12*a23*a34-a13*a24*a32-a14*a22*a33)/det,
@@ -612,29 +601,38 @@ cframe.inverse=function(a,o)
 		(a11*a24*0+a13*a21*1+a14*a23*0-a11*a23*1-a13*a24*0-a14*a21*0)/det,
 		(a21*a32*1+a22*a34*0+a24*a31*0-a21*a34*0-a22*a31*1-a24*a32*0)/det,
 		(a11*a34*0+a12*a31*1+a14*a32*0-a11*a32*1-a12*a34*0-a14*a31*0)/det,
-		(a11*a22*1+a12*a24*0+a14*a21*0-a11*a24*0-a12*a21*1-a14*a22*0)/det,
-		o
+		(a11*a22*1+a12*a24*0+a14*a21*0-a11*a24*0-a12*a21*1-a14*a22*0)/det
 	)
 end
-cframe.to_euler=function(a,o)
+cframe.to_euler=function(a)
 	return
-		atan2(a.r32,a.r33),
-		atan2(-a.r31,sqrt(a.r32^2,a.r33^2)),
-		atan2(a.r21,a.r11)
+		atan2(-a.r23,a.r33),
+		asin(a.r13),
+		atan2(-a.r12,a.r11)
 end
-cframe.to_axis=function(a,o)
+cframe.to_axis=function(a)
 	
 end
-cframe.to_position=function(a,o)
-	return vector3.new(a.x,a.y,a.z,o)
+cframe.to_look=function(a)
+	return vector3.new(a.r13,a.r23,a.r33)
 end
-cframe.to_mat4=function(a,o)
+cframe.to_position=function(a)
+	return vector3.new(a.x,a.y,a.z)
+end
+cframe.to_mat4_column=function(a)
 	return mat4.new(
 		a.r11,a.r12,a.r13,0,
 		a.r21,a.r22,a.r23,0,
 		a.r31,a.r32,a.r33,0,
-		a.x,a.y,a.z,1,
-		o
+		a.x,a.y,a.z,1
+	)
+end
+cframe.to_mat4_row=function(a)
+	return mat4.new(
+		a.r11,a.r12,a.r13,a.x,
+		a.r21,a.r22,a.r23,a.y,
+		a.r31,a.r32,a.r33,a.z,
+		0,0,0,1
 	)
 end
 cframe.unpack=function(a)
@@ -644,66 +642,57 @@ cframe.unpack=function(a)
 		a.r21,a.r22,a.r23,
 		a.r31,a.r32,a.r33
 end
-cframe.lerp=function(a,b,t,o)
+cframe.lerp=function(a,b,t)
 	
 end
 
 ------------------------------[UDim2]------------------------------
 udim2.__index=udim2
 udim2.new=function(x_scale,x_offset,y_scale,y_offset,o)
-	o=o or setmetatable({
-		x={scale=0,offset=0},
-		y={scale=0,offset=0}
+	return setmetatable({
+		x={scale=x_scale or 0,offset=x_offset or 0},
+		y={scale=y_scale or 0,offset=y_offset or 0}
 	},udim2)
-	o.x.scale=x_scale or 0
-	o.x.offset=x_offset or 0
-	o.y.scale=y_scale or 0
-	o.y.offset=y_offset or 0
-	return o
 end
 udim2.__tostring=function(a)
 	return ("%f, %d, %f, %d"):format(a:unpack())
 end
-udim2.__unm=function(a,o)
-	return udim2.new(-a.x.scale,-a.x.offset,-a.y.scale,-a.y.offset,o)
+udim2.__unm=function(a)
+	return udim2.new(-a.x.scale,-a.x.offset,-a.y.scale,-a.y.offset)
 end
-udim2.__add=function(a,b,o)
+udim2.__add=function(a,b)
 	return udim2.new(
 		a.x.scale+b.x.scale,a.x.offset+b.x.offset,
-		a.y.scale+b.y.scale,a.y.offset+b.y.offset,
-		o
+		a.y.scale+b.y.scale,a.y.offset+b.y.offset
 	)
 end
-udim2.__sub=function(a,b,o)
+udim2.__sub=function(a,b)
 	return udim2.new(
 		a.x.scale-b.x.scale,a.x.offset-b.x.offset,
-		a.y.scale-b.y.scale,a.y.offset-b.y.offset,
-		o
+		a.y.scale-b.y.scale,a.y.offset-b.y.offset
 	)
 end
-udim2.__mul=function(a,b,o)
+udim2.__mul=function(a,b)
 	if type(a)=="number" then
-		return udim2.new(a*b.x.scale,a*b.x.offset,a*b.y.scale,a*b.y.offset,o)
+		return udim2.new(a*b.x.scale,a*b.x.offset,a*b.y.scale,a*b.y.offset)
 	elseif type(b)=="number" then
-		return udim2.new(a.x.scale*b,a.x.offset*b,a.y.scale*b,a.y.offset*b,o)
+		return udim2.new(a.x.scale*b,a.x.offset*b,a.y.scale*b,a.y.offset*b)
 	else
 		return udim2.new(
 			a.x.scale*b.x.scale,a.x.offset*b.x.offset,
-			a.y.scale*b.y.scale,a.y.offset*b.y.offset,
-			o
+			a.y.scale*b.y.scale,a.y.offset*b.y.offset
 		)
 	end
 end
 udim2.__div=function(a,b,o)
 	if type(a)=="number" then
-		return udim2.new(a/b.x.scale,a/b.x.offset,a/b.y.scale,a/b.y.offset,o)
+		return udim2.new(a/b.x.scale,a/b.x.offset,a/b.y.scale,a/b.y.offset)
 	elseif type(b)=="number" then
-		return udim2.new(a.x.scale/b,a.x.offset/b,a.y.scale/b,a.y.offset/b,o)
+		return udim2.new(a.x.scale/b,a.x.offset/b,a.y.scale/b,a.y.offset/b)
 	else
 		return udim2.new(
 			a.x.scale/b.x.scale,a.x.offset/b.x.offset,
-			a.y.scale/b.y.scale,a.y.offset/b.y.offset,
-			o
+			a.y.scale/b.y.scale,a.y.offset/b.y.offset
 		)
 	end
 end
@@ -716,54 +705,49 @@ end
 udim2.unpack=function(a)
 	return a.x.scale,a.x.offset,a.y.scale,a.y.offset
 end
-udim2.lerp=function(a,b,t,o)
+udim2.lerp=function(a,b,t)
 	return udim2.__add(
 		udim2.__mul(a,(1-t)),
-		udim2.__mul(b,t),o
+		udim2.__mul(b,t)
 	)
 end
 
 ------------------------------[Rect]------------------------------
 rect.__index=rect
 rect.new=function(min_x,min_y,max_x,max_y,o)
-	o=o or setmetatable({
-		min_x=0,min_y=0,
-		max_x=0,max_y=0
+	return setmetatable({
+		min_x=min_x or 0,min_y=min_y or 0,
+		max_x=max_x or 0,max_y=max_y or 0
 	},rect)
-	o.min_x=min_x or 0
-	o.min_y=min_y or 0
-	o.max_x=max_x or 0
-	o.max_y=max_y or 0
-	return o
 end
 rect.__tostring=function(a)
 	return ("%d, %d, %d, %d"):format(a:unpack())
 end
-rect.__unm=function(a,o)
-	return rect.new(-a.min_x,-a.min_y,-a.max_x,-a.max_y,o)
+rect.__unm=function(a)
+	return rect.new(-a.min_x,-a.min_y,-a.max_x,-a.max_y)
 end
-rect.__add=function(a,b,o)
-	return rect.new(a.min_x+b.min_x,a.min_y+b.min_y,a.max_x+b.max_x,a.max_y+b.max_y,o)
+rect.__add=function(a,b)
+	return rect.new(a.min_x+b.min_x,a.min_y+b.min_y,a.max_x+b.max_x,a.max_y+b.max_y)
 end
-rect.__sub=function(a,b,o)
-	return rect.new(a.min_x-b.min_x,a.min_y-b.min_y,a.max_x-b.max_x,a.max_y-b.max_y,o)
+rect.__sub=function(a,b)
+	return rect.new(a.min_x-b.min_x,a.min_y-b.min_y,a.max_x-b.max_x,a.max_y-b.max_y)
 end
-rect.__mul=function(a,b,o)
+rect.__mul=function(a,b)
 	if type(a)=="number" then
-		return rect.new(a*b.min_x,a*b.min_y,a*b.max_x,a*b.max_y,o)
+		return rect.new(a*b.min_x,a*b.min_y,a*b.max_x,a*b.max_y)
 	elseif type(b)=="number" then
-		return rect.new(a.min_x*b,a.min_y*b,a.max_x*b,a.max_y*b,o)
+		return rect.new(a.min_x*b,a.min_y*b,a.max_x*b,a.max_y*b)
 	else
-		return rect.new(a.min_x*b.min_x,a.min_y*b.min_y,a.max_x*b.max_x,a.max_y*b.max_y,o)
+		return rect.new(a.min_x*b.min_x,a.min_y*b.min_y,a.max_x*b.max_x,a.max_y*b.max_y)
 	end
 end
-rect.__div=function(a,b,o)
+rect.__div=function(a,b)
 	if type(a)=="number" then
-		return rect.new(a/b.min_x,a/b.min_y,a/b.max_x,a/b.max_y,o)
+		return rect.new(a/b.min_x,a/b.min_y,a/b.max_x,a/b.max_y)
 	elseif type(b)=="number" then
-		return rect.new(a.min_x/b,a.min_y/b,a.max_x/b,a.max_y/b,o)
+		return rect.new(a.min_x/b,a.min_y/b,a.max_x/b,a.max_y/b)
 	else
-		return rect.new(a.min_x/b.min_x,a.min_y/b.min_y,a.max_x/b.max_x,a.max_y/b.max_y,o)
+		return rect.new(a.min_x/b.min_x,a.min_y/b.min_y,a.max_x/b.max_x,a.max_y/b.max_y)
 	end
 end
 rect.__eq=function(a,b)
@@ -772,69 +756,69 @@ rect.__eq=function(a,b)
 		a.max_x==b.max_x and a.max_y==b.max_y
 	)
 end
-rect.clamp=function(a,b,o)
+rect.clamp=function(a,b)
 	return rect.new(
 		lmath.clamp(a.min_x,b.min_x,b.max_x),
 		lmath.clamp(a.min_y,b.min_y,b.max_y),
 		lmath.clamp(a.max_x,b.min_x,b.max_x),
-		lmath.clamp(a.max_y,b.min_y,b.max_y),
-		o
+		lmath.clamp(a.max_y,b.min_y,b.max_y)
 	)
 end
 rect.unpack=function(a)
 	return a.min_x,a.min_y,a.max_x,a.max_y
 end
-rect.lerp=function(a,b,t,o)
+rect.lerp=function(a,b,t)
 	return rect.__add(
 		rect.__mul(a,(1-t)),
-		rect.__mul(b,t),o
+		rect.__mul(b,t)
 	)
 end
 
 ------------------------------[Color3]------------------------------
 color3.__index=color3
-color3.new=function(r,g,b,o)
-	o=o or setmetatable({r=0,g=0,b=0},color3)
-	o.r,o.g,o.b=r or 0,g or 0,b or 0
-	return o
+color3.new=function(r,g,b)
+	return setmetatable({
+		r=r or 0,
+		g=g or 0,
+		b=b or 0
+	},color3)
 end
-color3.hex=function(hex,o)
+color3.hex=function(hex)
 	hex=hex:gsub("#","")
 	return color3.new(
 		tonumber("0x"..hex:sub(1,2))/255,
 		tonumber("0x"..hex:sub(3,4))/255,
-		tonumber("0x"..hex:sub(5,6))/255,
-		o
+		tonumber("0x"..hex:sub(5,6))/255
 	)
 end
 color3.__tostring=function(a)
 	return ("%d, %d, %d"):format(a.r*255,a.g*255,a.b*255)
 end
-color3.__unm=function(a,o)
-	return color3.new(-a.r,-a.g,-a.b,o)
+color3.__unm=function(a)
+	return color3.new(-a.r,-a.g,-a.b)
 end
-color3.__add=function(a,b,o)
-	return color3.new(a.r+b.r,a.g+b.g,a.b+b.b,o)
+color3.__add=function(a,b)
+	return color3.new(a.r+b.r,a.g+b.g,a.b+b.b)
 end
-color3.__sub=function(a,b,o)
-	return color3.new(a.r-b.r,a.g-b.g,a.b-b.b,o)
+color3.__sub=function(a,b)
+	return color3.new(a.r-b.r,a.g-b.g,a.b-b.b)
 end
-color3.__mul=function(a,b,o)
+color3.__mul=function(a,b)
 	if type(a)=="number" then
-		return color3.new(a*b.r,a*b.g,a*b.b,o)
+		return color3.new(a*b.r,a*b.g,a*b.b)
 	elseif type(b)=="number" then
-		return color3.new(a.r*b,a.g*b,a.b*b,o)
+		return color3.new(a.r*b,a.g*b,a.b*b)
 	else
-		return color3.new(a.r*b.r,a.g*b.g,a.b*b.b,o)
+		return color3.new(a.r*b.r,a.g*b.g,a.b*b.b)
 	end
 end
-color3.__div=function(a,b,o)
+color3.__div=function(a,b)
 	if type(a)=="number" then
-		return color3.new(a/b.r,a/b.g,a/b.b,o)
+		return color3.new(a/b.r,a/b.g,a/b.b)
 	elseif type(b)=="number" then
-		return color3.new(a.r/b,a.g/b,a.b/b,o)
+		return color3.new(a.r/b,a.g/b,a.b/b)
 	else
-		return color3.new(a.r/b.r,a.g/b.g,a.b/b.b,o)
+		return color3.new(a.r/b.r,a.g/b.g,a.b/b.b)
 	end
 end
 color3.__eq=function(a,b)
@@ -843,10 +827,10 @@ end
 color3.unpack=function(a)
 	return a.r,a.g,a.b
 end
-color3.lerp=function(a,b,t,o)
+color3.lerp=function(a,b,t)
 	return color3.__add(
 		color3.__mul(a,(1-t)),
-		color3.__mul(b,t),o
+		color3.__mul(b,t)
 	)
 end
 
