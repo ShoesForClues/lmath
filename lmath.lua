@@ -36,6 +36,7 @@ local rad   = math.rad
 local atan  = math.atan
 local atan2 = math.atan2
 local asin  = math.asin
+local acos  = math.acos
 local pi    = math.pi
 local tpi   = pi*2
 
@@ -393,21 +394,14 @@ mat4.rotate=function(a,angle,axis)
 	temp_mat4[4][2]=0
 	temp_mat4[4][3]=0
 	temp_mat4[4][4]=1
-	return mat4.__mul(temp_mat4,a)
+	return temp_mat4*a
 end
-mat4.translate_column=function(a,p)
+mat4.translate=function(a,x,y,z)
 	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,0
 	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,0
 	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,0
-	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=p.x,p.y,p.z,1
-	return mat4.__mul(temp_mat4,a)
-end
-mat4.translate_row=function(a,p)
-	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,p.x
-	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,p.y
-	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,p.z
-	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=0,0,0,1
-	return mat4.__mul(temp_mat4,a)
+	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=x,y,z,1
+	return temp_mat4*a
 end
 mat4.transpose=function(a)
 	return mat4.new(
@@ -467,7 +461,7 @@ cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33)
 		r31=r31 or 0,r32=r32 or 0,r33=r33 or 1
 	},cframe)
 end
-cframe.from_lookat=function(position,front,up)
+cframe.from_matrix=function(position,front,up)
 	local x_axis=up:cross(front):normalize()
 	local y_axis=front:cross(x_axis):normalize()
 	return cframe.new(
@@ -475,6 +469,28 @@ cframe.from_lookat=function(position,front,up)
 		x_axis.x,y_axis.x,front.x,
 		x_axis.y,y_axis.y,front.y,
 		x_axis.z,y_axis.z,front.z
+	)
+end
+cframe.from_look=function(eye,look)
+	local zaxis=(eye-look):normalize()
+	local xaxis=unit_y:cross(zaxis):normalize()
+	local yaxis=zaxis:cross(xaxis):normalize()
+	if (xaxis:magnitude()==0) then
+		if zaxis.y<0 then
+			xaxis=vector3.new(0,0,-1)
+			yaxis=vector3.new(1,0,0)
+			zaxis=vector3.new(0,-1,0)
+		else
+			xaxis=vector3.new(0,0,1)
+			yaxis=vector3.new(1,0,0)
+			zaxis=vector3.new(0,1,0)
+		end;
+	end;
+	return cframe.new(
+		eye.x,eye.y,eye.z,
+		xaxis.x,yaxis.x,zaxis.x,
+		xaxis.y,yaxis.y,zaxis.y,
+		xaxis.z,yaxis.z,zaxis.z
 	)
 end
 cframe.from_euler=function(x,y,z)
@@ -552,19 +568,16 @@ cframe.__mul=function(a,b)
 	else
 		local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
 		local b14,b24,b34,b11,b12,b13,b21,b22,b23,b31,b32,b33=b:unpack()
-		local c=mat4.__mul(
-			mat4.new(
-				a11,a12,a13,a14,
-				a21,a22,a23,a24,
-				a31,a32,a33,a34,
-				0,0,0,1
-			),
-			mat4.new(
-				b11,b12,b13,b14,
-				b21,b22,b23,b24,
-				b31,b32,b33,b34,
-				0,0,0,1
-			)
+		local c=mat4.new(
+			a11,a12,a13,a14,
+			a21,a22,a23,a24,
+			a31,a32,a33,a34,
+			0,0,0,1
+		)*mat4.new(
+			b11,b12,b13,b14,
+			b21,b22,b23,b24,
+			b31,b32,b33,b34,
+			0,0,0,1
 		)
 		return cframe.new(
 			c[1][4],c[2][4],c[3][4],
@@ -611,15 +624,25 @@ cframe.to_euler=function(a)
 		atan2(-a.r12,a.r11)
 end
 cframe.to_axis=function(a)
-	
+	return
+		(a.r32-a.r23)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
+		(a.r13-a.r31)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
+		(a.r21-a.r12)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
+		acos((a.r11+a.r22+a.r33-1)/2)
 end
-cframe.to_look=function(a)
+cframe.to_front=function(a)
 	return vector3.new(a.r13,a.r23,a.r33)
+end
+cframe.to_up=function(a)
+	return vector3.new(a.r12,a.r22,a.r32)
+end
+cframe.to_right=function(a)
+	return vector3.new(a.r11,a.r21,a.r31)
 end
 cframe.to_position=function(a)
 	return vector3.new(a.x,a.y,a.z)
 end
-cframe.to_mat4_column=function(a)
+cframe.to_mat4=function(a)
 	return mat4.new(
 		a.r11,a.r12,a.r13,0,
 		a.r21,a.r22,a.r23,0,
@@ -627,11 +650,11 @@ cframe.to_mat4_column=function(a)
 		a.x,a.y,a.z,1
 	)
 end
-cframe.to_mat4_row=function(a)
+cframe.to_mat4_view=function(a)
 	return mat4.new(
-		a.r11,a.r12,a.r13,a.x,
-		a.r21,a.r22,a.r23,a.y,
-		a.r31,a.r32,a.r33,a.z,
+		a.r11,a.r12,a.r13,0,
+		a.r21,a.r22,a.r23,0,
+		a.r31,a.r32,a.r33,0,
 		0,0,0,1
 	)
 end
