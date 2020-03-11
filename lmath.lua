@@ -472,25 +472,14 @@ cframe.from_matrix=function(position,front,up)
 	)
 end
 cframe.from_look=function(eye,look)
-	local zaxis=(eye-look):normalize()
-	local xaxis=unit_y:cross(zaxis):normalize()
-	local yaxis=zaxis:cross(xaxis):normalize()
-	if (xaxis:magnitude()==0) then
-		if zaxis.y<0 then
-			xaxis=vector3.new(0,0,-1)
-			yaxis=vector3.new(1,0,0)
-			zaxis=vector3.new(0,-1,0)
-		else
-			xaxis=vector3.new(0,0,1)
-			yaxis=vector3.new(1,0,0)
-			zaxis=vector3.new(0,1,0)
-		end;
-	end;
-	return cframe.new(
+	local front=(eye-look):normalize()
+    local right=unit_y:cross(front):normalize()
+    local up=front:cross(right):normalize()
+    return cframe.new(
 		eye.x,eye.y,eye.z,
-		xaxis.x,yaxis.x,zaxis.x,
-		xaxis.y,yaxis.y,zaxis.y,
-		xaxis.z,yaxis.z,zaxis.z
+		right.x,right.y,right.z,
+		up.x,up.y,up.z,
+		front.x,front.y,front.z
 	)
 end
 cframe.from_euler=function(x,y,z)
@@ -566,24 +555,22 @@ cframe.__mul=function(a,b)
 			a.z+b.x*a.r31+b.y*a.r32+b.z*a.r33
 		)
 	else
-		local a14,a24,a34,a11,a12,a13,a21,a22,a23,a31,a32,a33=a:unpack()
-		local b14,b24,b34,b11,b12,b13,b21,b22,b23,b31,b32,b33=b:unpack()
-		local c=mat4.new(
-			a11,a12,a13,a14,
-			a21,a22,a23,a24,
-			a31,a32,a33,a34,
+		local mat=mat4.new(
+			a.r11,a.r12,a.r13,a.x,
+			a.r21,a.r22,a.r23,a.y,
+			a.r31,a.r32,a.r33,a.z,
 			0,0,0,1
 		)*mat4.new(
-			b11,b12,b13,b14,
-			b21,b22,b23,b24,
-			b31,b32,b33,b34,
+			b.r11,b.r12,b.r13,b.x,
+			b.r21,b.r22,b.r23,b.y,
+			b.r31,b.r32,b.r33,b.z,
 			0,0,0,1
 		)
 		return cframe.new(
-			c[1][4],c[2][4],c[3][4],
-			c[1][1],c[1][2],c[1][3],
-			c[2][1],c[2][2],c[2][3],
-			c[3][1],c[3][2],c[3][3]
+			mat[1][4],mat[2][4],mat[3][4],
+			mat[1][1],mat[1][2],mat[1][3],
+			mat[2][1],mat[2][2],mat[2][3],
+			mat[3][1],mat[3][2],mat[3][3]
 		)
 	end
 end
