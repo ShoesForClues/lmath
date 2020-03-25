@@ -320,6 +320,13 @@ mat4.__mul=function(a,b)
 			b*a[3][1],b*a[3][2],b*a[3][3],b*a[3][4],
 			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4]
 		)
+	elseif getmetatable(b)==vector3 then
+		return mat4.new(
+			a[1][1]*b.x,a[1][2],a[1][3],a[1][4],
+			a[2][1],a[2][2]*b.y,a[2][3],a[2][4],
+			a[3][1],a[3][2],a[3][3]*b.z,a[3][4],
+			a[4][1],a[4][2],a[4][3],a[4][4]
+		)
 	else
 		return mat4.new(
 			a[1][1]*b[1][1]+a[1][2]*b[2][1]+a[1][3]*b[3][1]+a[1][4]*b[4][1],
@@ -394,14 +401,22 @@ mat4.rotate=function(a,angle,axis)
 	temp_mat4[4][2]=0
 	temp_mat4[4][3]=0
 	temp_mat4[4][4]=1
-	return temp_mat4*a
+	return a*temp_mat4
 end
 mat4.translate=function(a,x,y,z)
 	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,0
 	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,0
 	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,0
 	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=x,y,z,1
-	return temp_mat4*a
+	return a*temp_mat4
+end
+mat4.scale=function(a,x,y,z)
+	return a*mat4.new(
+		x,0,0,0,
+		0,y,0,0,
+		0,0,z,0,
+		0,0,0,1
+	)
 end
 mat4.transpose=function(a)
 	return mat4.new(
@@ -488,9 +503,15 @@ cframe.from_euler=function(x,y,z)
 	local cz,sz=cos(z),sin(z)
 	return cframe.new(
 		0,0,0,
-		cy*cz,-cy*sz,sy,
-		cz*sx*sy+cx*sz,cx*cz-sx*sy*sz,-cy*sx,
-		sx*sz-cx*cz*sy,cz*sx+cx*sy*sz,cx*cy
+		cy*cz,
+		-cy*sz,
+		sy,
+		cz*sx*sy+cx*sz,
+		cx*cz-sx*sy*sz,
+		-cy*sx,
+		sx*sz-cx*cz*sy,
+		cz*sx+cx*sy*sz,
+		cx*cy
 	)
 end
 cframe.from_axis=function(x,y,z,t)
