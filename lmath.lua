@@ -23,7 +23,7 @@ SOFTWARE.
 ]]
 
 local lmath={
-	_version={0,1,2};
+	_version={0,1,4};
 }
 
 --Primitives
@@ -53,9 +53,22 @@ end
 lmath.lerp=function(start,goal,t)
 	return start*(1-t)+goal*t
 end
-lmath.alerp=function(start,goal,percent)
+lmath.alerp=function(start,goal,t)
 	local shortest_angle=((((goal-start)%tpi)+rad(540))%tpi)-pi
-	return start+(shortest_angle*percent)%tpi
+	return start+(shortest_angle*t)%tpi
+end
+lmath.bezier_lerp=function(points,t)
+	local pointsTB=points
+	while #pointsTB~=1 do
+		local ntb={}
+		for k,v in ipairs(pointsTB) do
+			if k~=1 then
+				ntb[k-1]=pointsTB[k-1]:lerp(v,t)
+			end
+		end
+		pointsTB=ntb
+	end
+	return pointsTB[1]
 end
 
 lmath.round=function(num,decimal_place)
@@ -865,7 +878,7 @@ color3.lerp=function(a,b,t)
 	)
 end
 
---Initialize Data Types
+--Data Types
 lmath.vector2 = setmetatable(vector2,vector2)
 lmath.vector3 = setmetatable(vector3,vector3)
 lmath.mat4    = setmetatable(mat4,mat4)
@@ -875,12 +888,12 @@ lmath.rect    = setmetatable(rect,rect)
 lmath.udim2   = setmetatable(udim2,udim2)
 lmath.color3  = setmetatable(color3,color3)
 
---Initialize Constants
+--Constants
 unit_x = lmath.vector3.new(1,0,0)
 unit_y = lmath.vector3.new(0,1,0)
 unit_z = lmath.vector3.new(0,0,1)
 
---Initialize Temps
+--Temps
 temp_mat4      = lmath.mat4.new()
 temp_vector2_1 = lmath.vector2.new()
 temp_vector2_2 = lmath.vector2.new()
