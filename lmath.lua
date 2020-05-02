@@ -694,8 +694,8 @@ end
 udim2.__index=udim2
 udim2.new=function(x_scale,x_offset,y_scale,y_offset,o)
 	return setmetatable({
-		x={scale=x_scale or 0,offset=x_offset or 0},
-		y={scale=y_scale or 0,offset=y_offset or 0}
+		x={scale=x_scale or 0,offset=floor(x_offset or 0)},
+		y={scale=y_scale or 0,offset=floor(y_offset or 0)}
 	},udim2)
 end
 udim2.__tostring=function(a)
