@@ -50,12 +50,12 @@ lmath.clamp=function(v,min,max)
 	return v
 end
 
-lmath.lerp=function(start,goal,t)
-	return start*(1-t)+goal*t
+lmath.lerp=function(a,b,t)
+	return a*(1-t)+b*t
 end
-lmath.alerp=function(start,goal,t)
-	local shortest_angle=((((goal-start)%tpi)+rad(540))%tpi)-pi
-	return start+(shortest_angle*t)%tpi
+lmath.alerp=function(a,b,t)
+	local shortest_angle=((((b-a)%tpi)+rad(540))%tpi)-pi
+	return a+(shortest_angle*t)%tpi
 end
 lmath.bezier_lerp=function(points,t)
 	local pointsTB=points
@@ -319,21 +319,7 @@ mat4.__sub=function(a,b)
 	)
 end
 mat4.__mul=function(a,b)
-	if type(a)=="number" then
-		return mat4.new(
-			a*b[1][1],a*b[1][2],a*b[1][3],a*b[1][4],
-			a*b[2][1],a*b[2][2],a*b[2][3],a*b[2][4],
-			a*b[3][1],a*b[3][2],a*b[3][3],a*b[3][4],
-			a*b[4][1],a*b[4][2],a*b[4][3],a*b[4][4]
-		)
-	elseif type(b)=="number" then
-		return mat4.new(
-			b*a[1][1],b*a[1][2],b*a[1][3],b*a[1][4],
-			b*a[2][1],b*a[2][2],b*a[2][3],b*a[2][4],
-			b*a[3][1],b*a[3][2],b*a[3][3],b*a[3][4],
-			b*a[4][1],b*a[4][2],b*a[4][3],b*a[4][4]
-		)
-	elseif getmetatable(b)==vector3 then
+	if getmetatable(b)==vector3 then
 		return mat4.new(
 			a[1][1]*b.x,a[1][2],a[1][3],a[1][4],
 			a[2][1],a[2][2]*b.y,a[2][3],a[2][4],
@@ -668,7 +654,7 @@ cframe.to_mat4=function(a)
 		a.r11,a.r12,a.r13,0,
 		a.r21,a.r22,a.r23,0,
 		a.r31,a.r32,a.r33,0,
-		a.x,a.y,a.z,1
+		a.z,a.y,a.x,1
 	)
 end
 cframe.to_mat4_view=function(a)
@@ -694,8 +680,8 @@ end
 udim2.__index=udim2
 udim2.new=function(x_scale,x_offset,y_scale,y_offset,o)
 	return setmetatable({
-		x={scale=x_scale or 0,offset=floor(x_offset or 0)},
-		y={scale=y_scale or 0,offset=floor(y_offset or 0)}
+		x={scale=x_scale or 0,offset=x_offset or 0},
+		y={scale=y_scale or 0,offset=y_offset or 0}
 	},udim2)
 end
 udim2.__tostring=function(a)
