@@ -24,13 +24,9 @@ print(b:cross(lmath.vector3.new(8,2,4))) --8, 40, -36
 - **udim2**(x_scale,x_offset,y_scale,y_offset)
 - **rect**(min_x,min_y,max_x,max_y)
 - **color3**(r,g,b)
+- **quat** (x,y,z,w)
 - **mat4**(...)
 - **cframe**(...)
-
-# To-Do
-
-- Quaternions
-- Color3 from HSV
 
 # License
 This software is free to use. You can modify it and redistribute it under the terms of the 
