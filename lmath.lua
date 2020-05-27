@@ -1,7 +1,7 @@
 --[[
 MIT License
 
-Copyright (c) 2020 ShoesForClues
+Copyright (c) 2020 Shoelee
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ]]
 
-local lmath={
-	_version={0,1,4};
-}
-
---Primitives
+local min   = math.min
+local max   = math.max
+local abs   = math.abs
+local fmod  = math.fmod
 local sqrt  = math.sqrt
 local floor = math.floor
 local sin   = math.sin
@@ -40,7 +39,10 @@ local acos  = math.acos
 local pi    = math.pi
 local tpi   = pi*2
 
---Functions
+local lmath={
+	_version={0,1,5}
+}
+
 lmath.clamp=function(v,min,max)
 	if v<min or v~=v then
 		return min
@@ -54,8 +56,7 @@ lmath.lerp=function(a,b,t)
 	return a*(1-t)+b*t
 end
 lmath.alerp=function(a,b,t)
-	local shortest_angle=((((b-a)%tpi)+rad(540))%tpi)-pi
-	return a+(shortest_angle*t)%tpi
+	return a+((((b-a)%tpi+rad(540))%tpi-pi)*t)%tpi
 end
 lmath.bezier_lerp=function(points,t)
 	local pointsTB=points
@@ -90,8 +91,8 @@ end
 --Data Types
 local vector2 = {}
 local vector3 = {}
-local mat4    = {}
 local quat    = {}
+local mat4    = {}
 local cframe  = {}
 local rect    = {}
 local udim    = {}
@@ -154,7 +155,7 @@ vector2.magnitude=function(a)
 	return sqrt(a.x^2+a.y^2)
 end
 vector2.normalize=function(a)
-	return vector2.__div(a,a:magnitude())
+	return a/a:magnitude()
 end
 vector2.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)
@@ -165,14 +166,14 @@ end
 vector2.rotate=function(a,b,angle)
 	return vector2.new(lmath.rotate(a.x,a.y,b.x,b.y,angle))
 end
-vector2.unpack=function(a)
-	return a.x,a.y
-end
 vector2.lerp=function(a,b,t)
 	return vector2.__add(
-		vector2.__mul(a,(1-t),temp_vector2_1),
-		vector2.__mul(b,t,temp_vector2_2)
+		vector2.__mul(a,(1-t)),
+		vector2.__mul(b,t)
 	)
+end
+vector2.unpack=function(a)
+	return a.x,a.y
 end
 
 ------------------------------[Vector3]------------------------------
@@ -232,7 +233,7 @@ vector3.magnitude=function(a)
 	return sqrt(a.x^2+a.y^2+a.z^2)
 end
 vector3.normalize=function(a)
-	return vector3.__div(a,a:magnitude())
+	return a/a:magnitude()
 end
 vector3.dot=function(a,b)
 	return (a.x*b.x)+(a.y*b.y)+(a.z*b.z)
@@ -244,14 +245,122 @@ vector3.cross=function(a,b)
 		a.x*b.y-a.y*b.x
 	)
 end
+vector3.lerp=function(a,b,t)
+	return vector3.__add(
+		vector3.__mul(a,(1-t)),
+		vector3.__mul(b,t)
+	)
+end
 vector3.unpack=function(a)
 	return a.x,a.y,a.z
 end
-vector3.lerp=function(a,b,t)
-	return vector3.__add(
-		vector3.__mul(a,(1-t),temp_vector3_1),
-		vector3.__mul(b,t,temp_vector3_2)
+
+------------------------------[Quat]------------------------------
+quat.__index=quat
+quat.new=function(x,y,z,w)
+	return setmetatable({
+		x=x or 0,
+		y=y or 0,
+		z=z or 0,
+		w=w or 0
+	},quat)
+end
+quat.from_euler=function(x,y,z)
+	local sx,cx=sin(x/2),cos(x/2)
+	local sy,cy=sin(y/2),cos(y/2)
+	local sz,cz=sin(z/2),cos(z/2)
+	return quat.new(
+		sz*cy*cx-cz*sy*sx,
+		cz*sy*cx+sz*cy*sx,
+		cz*cy*sx-sz*sy*cx,
+		cz*cy*cx+sz*sy*sx
 	)
+end
+quat.from_axis=function(x,y,z,a)
+	local s=sin(a/2)
+	return quat.new(x*s,y*s,z*s,cos(a/2))
+end
+quat.__tostring=function(a)
+	return ("%f, %f, %f, %f"):format(a:unpack())
+end
+quat.__add=function(a,b)
+	if type(a)=="number" then
+		return quat.new(a+b.x,a+b.y,a+b.z,a+b.w)
+	elseif type(b)=="number" then
+		return quat.new(a.x+b,a.y+b,a.z+b,a.w+b)
+	else
+		return quat.new(a.x+b.x,a.y+b.y,a.z+b.z,a.w+b.w)
+	end
+end
+quat.__sub=function(a,b)
+	if type(a)=="number" then
+		return quat.new(a-b.x,a-b.y,a-b.z,a-b.w)
+	elseif type(b)=="number" then
+		return quat.new(a.x-b,a.y-b,a.z-b,a.w-b)
+	else
+		return quat.new(a.x-b.x,a.y-b.y,a.z-b.z,a.w-b.w)
+	end
+end
+quat.__mul=function(a,b)
+	if type(a)=="number" then
+		return quat.new(a*b.x,a*b.y,a*b.z,a*b.w)
+	elseif type(b)=="number" then
+		return quat.new(a.x*b,a.y*b,a.z*b,a.w*b)
+	else
+		return quat.new(a.x*b.x,a.y*b.y,a.z*b.z,a.w*b.w)
+	end
+end
+quat._div=function(a,b)
+	if type(a)=="number" then
+		return quat.new(a/b.x,a/b.y,a/b.z,a/b.w)
+	elseif type(b)=="number" then
+		return quat.new(a.x/b,a.y/b,a.z/b,a.w/b)
+	else
+		return quat.new(a.x/b.x,a.y/b.y,a.z/b.z,a.w/b.w)
+	end
+end
+quat.__unm=function(a)
+	return quat.new(-a.x,-a.y,-a.z,-a.w)
+end
+quat.magnitude=function(a)
+	return sqrt(a.x^2+a.y^2+a.z^2+a.w^2)
+end
+quat.normalize=function(a)
+	local m=a:magnitude()
+	return quat.new(a.x/m,a.y/m,a.z/m,a.w/m)
+end
+quat.dot=function(a,b)
+	return (a.x*b.x)+(a.y*b.y)+(a.z*b.z)+(a.w*b.w)
+end
+quat.slerp=function(a,b,t)
+	local v0=a:normalize()
+	local v1=b:normalize()
+	
+	local dot=v0:dot(v1)
+	
+	if dot<0 then
+		v1=-v1
+		dot=-dot
+	end
+	
+	local dot_threshold=0.9995
+	
+	if dot>0.9995 then
+		return (v0+t*(v1-v0)):normalize()
+	end
+	
+	local theta_0=acos(dot)
+	local theta=theta_0*t
+	local sin_theta=sin(theta)
+	local sin_theta_0=sin(theta_0)
+	
+	local s0=cos(theta)-dot*sin_theta/sin_theta_0
+	local s1=sin_theta/sin_theta_0
+	
+	return (s0*v0)+(s1*v1)
+end
+quat.unpack=function(a)
+	return a.x,a.y,a.z,a.w
 end
 
 ------------------------------[Mat4]------------------------------
@@ -433,38 +542,6 @@ mat4.unpack=function(a)
 		a[4][1],a[4][2],a[4][3],a[4][4]
 end
 
-------------------------------[Quat]------------------------------
-quat.__index=quat
-quat.new=function(x,y,z,w)
-	return setmetatable({
-		x=x or 0,
-		y=y or 0,
-		z=z or 0,
-		w=w or 0
-	},quat)
-end
-quat.from_euler=function(x,y,z)
-	local sx,cx=sin(x/2),cos(x/2)
-	local sy,cy=sin(y/2),cos(y/2)
-	local sz,cz=sin(z/2),cos(z/2)
-	return quat.new(
-		sz*cy*cx-cz*sy*sx,
-		cz*sy*cx+sz*cy*sx,
-		cz*cy*sx-sz*sy*cx,
-		cz*cy*cx+sz*sy*sx
-	)
-end
-quat.from_axis=function(x,y,z,a)
-	local s=sin(a/2)
-	return quat.new(x*s,y*s,z*s,cos(a/2))
-end
-quat.__tostring=function(a)
-	return ("%f, %f, %f, %f"):format(a:unpack())
-end
-quat.unpack=function(a)
-	return a.x,a.y,a.z,a.w
-end
-
 ------------------------------[CFrame]------------------------------
 cframe.__index=cframe
 cframe.new=function(x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33)
@@ -631,11 +708,49 @@ cframe.to_euler=function(a)
 		atan2(-a.r12,a.r11)
 end
 cframe.to_axis=function(a)
+	local m=sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2)
 	return
-		(a.r32-a.r23)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
-		(a.r13-a.r31)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
-		(a.r21-a.r12)/sqrt((a.r32-a.r23)^2+(a.r13-a.r31)^2+(a.r21-a.r12)^2),
+		(a.r32-a.r23)/m,
+		(a.r13-a.r31)/m,
+		(a.r21-a.r12)/m,
 		acos((a.r11+a.r22+a.r33-1)/2)
+end
+cframe.to_quat=function(a)
+	local tr=a.r11+a.r22+a.r33
+	
+	if tr>0 then
+		local s=sqrt(tr+1)*2
+		return quat.new(
+			(a.r32-a.r23)/s,
+			(a.r13-a.r31)/s,
+			(a.r21-a.r12)/s,
+			0.25*s
+		)
+	elseif a.r11>a.r22 and a.r11>a.r33 then
+		local s=sqrt(1+a.r11-a.r22-a.r33)*2
+		return quat.new(
+			0.25*s,
+			(a.r12+a.r21)/s,
+			(a.r13+a.r31)/s,
+			(a.r32-a.r23)/s
+		)
+	elseif a.r22>a.r33 then
+		local s=sqrt(1+a.r22-a.r11-a.r33)*2
+		return quat.new(
+			(a.r12+a.r21)/s,
+			0.25*s,
+			(a.r23+a.r32)/s,
+			(a.r13-a.r31)/s
+		)
+	else
+		local s=sqrt(1+a.r33-a.r11-a.r22)*2
+		return quat.new(
+			(a.r21-a.r12)/s,
+			(a.r13+a.r31)/s,
+			(a.r23+a.r32)/s,
+			0.25*s
+		)
+	end
 end
 cframe.to_front=function(a)
 	return vector3.new(a.r13,a.r23,a.r33)
@@ -654,7 +769,7 @@ cframe.to_mat4=function(a)
 		a.r11,a.r12,a.r13,0,
 		a.r21,a.r22,a.r23,0,
 		a.r31,a.r32,a.r33,0,
-		a.z,a.y,a.x,1
+		a.x,a.y,a.z,1
 	)
 end
 cframe.to_mat4_view=function(a)
@@ -665,15 +780,17 @@ cframe.to_mat4_view=function(a)
 		0,0,0,1
 	)
 end
+cframe.lerp=function(a,b,t)
+	local quat_slerp=a:to_quat():slerp(b:to_quat(),t)
+	local vec_lerp=a:to_position():lerp(b:to_position(),t)
+	return cframe.from_quat(quat_slerp:unpack())+vec_lerp
+end
 cframe.unpack=function(a)
 	return
 		a.x,a.y,a.z,
 		a.r11,a.r12,a.r13,
 		a.r21,a.r22,a.r23,
 		a.r31,a.r32,a.r33
-end
-cframe.lerp=function(a,b,t)
-	
 end
 
 ------------------------------[UDim2]------------------------------
@@ -732,14 +849,14 @@ udim2.__eq=function(a,b)
 		a.y.scale==b.y.scale and a.y.offset==b.y.offset
 	)
 end
-udim2.unpack=function(a)
-	return a.x.scale,a.x.offset,a.y.scale,a.y.offset
-end
 udim2.lerp=function(a,b,t)
 	return udim2.__add(
 		udim2.__mul(a,(1-t)),
 		udim2.__mul(b,t)
 	)
+end
+udim2.unpack=function(a)
+	return a.x.scale,a.x.offset,a.y.scale,a.y.offset
 end
 
 ------------------------------[Rect]------------------------------
@@ -757,10 +874,16 @@ rect.__unm=function(a)
 	return rect.new(-a.min_x,-a.min_y,-a.max_x,-a.max_y)
 end
 rect.__add=function(a,b)
-	return rect.new(a.min_x+b.min_x,a.min_y+b.min_y,a.max_x+b.max_x,a.max_y+b.max_y)
+	return rect.new(
+		a.min_x+b.min_x,a.min_y+b.min_y,
+		a.max_x+b.max_x,a.max_y+b.max_y
+	)
 end
 rect.__sub=function(a,b)
-	return rect.new(a.min_x-b.min_x,a.min_y-b.min_y,a.max_x-b.max_x,a.max_y-b.max_y)
+	return rect.new(
+		a.min_x-b.min_x,a.min_y-b.min_y,
+		a.max_x-b.max_x,a.max_y-b.max_y
+	)
 end
 rect.__mul=function(a,b)
 	if type(a)=="number" then
@@ -768,7 +891,10 @@ rect.__mul=function(a,b)
 	elseif type(b)=="number" then
 		return rect.new(a.min_x*b,a.min_y*b,a.max_x*b,a.max_y*b)
 	else
-		return rect.new(a.min_x*b.min_x,a.min_y*b.min_y,a.max_x*b.max_x,a.max_y*b.max_y)
+		return rect.new(
+			a.min_x*b.min_x,a.min_y*b.min_y,
+			a.max_x*b.max_x,a.max_y*b.max_y
+		)
 	end
 end
 rect.__div=function(a,b)
@@ -777,7 +903,10 @@ rect.__div=function(a,b)
 	elseif type(b)=="number" then
 		return rect.new(a.min_x/b,a.min_y/b,a.max_x/b,a.max_y/b)
 	else
-		return rect.new(a.min_x/b.min_x,a.min_y/b.min_y,a.max_x/b.max_x,a.max_y/b.max_y)
+		return rect.new(
+			a.min_x/b.min_x,a.min_y/b.min_y,
+			a.max_x/b.max_x,a.max_y/b.max_y
+		)
 	end
 end
 rect.__eq=function(a,b)
@@ -794,14 +923,14 @@ rect.clamp=function(a,b)
 		lmath.clamp(a.max_y,b.min_y,b.max_y)
 	)
 end
-rect.unpack=function(a)
-	return a.min_x,a.min_y,a.max_x,a.max_y
-end
 rect.lerp=function(a,b,t)
 	return rect.__add(
 		rect.__mul(a,(1-t)),
 		rect.__mul(b,t)
 	)
+end
+rect.unpack=function(a)
+	return a.min_x,a.min_y,a.max_x,a.max_y
 end
 
 ------------------------------[Color3]------------------------------
@@ -813,7 +942,7 @@ color3.new=function(r,g,b)
 		b=b or 0
 	},color3)
 end
-color3.hex=function(hex)
+color3.from_hex=function(hex)
 	hex=hex:gsub("#","")
 	return color3.new(
 		tonumber("0x"..hex:sub(1,2))/255,
@@ -821,8 +950,29 @@ color3.hex=function(hex)
 		tonumber("0x"..hex:sub(5,6))/255
 	)
 end
+color3.from_hsv=function(h,s,v)
+	local c=v*s
+	local x=c*(1-abs(fmod(h/(60/360),2)-1))
+	local m=v-c
+	
+	if h>=0 and h<(60/360) then
+		return color3.new(c+m,x+m,m)
+	elseif h>=(60/360) and h<(120/360) then
+		return color3.new(x+m,c+m,m)
+	elseif h>=(120/360) and h<(180/360) then
+		return color3.new(m,c+m,x+m)
+	elseif h>=(180/360) and h<(240/360) then
+		return color3.new(m,x+m,c+m)
+	elseif h>=(250/360) and h<(300/360) then
+		return color3.new(x+m,m,c+m)
+	elseif h>=(300/360) and h<(360/360) then
+		return color3.new(c+m,m,x+m)
+	else
+		return color3.new(m,m,m)
+	end
+end
 color3.__tostring=function(a)
-	return ("%d, %d, %d"):format(a.r*255,a.g*255,a.b*255)
+	return ("%f, %f, %f"):format(a.r,a.g,a.b)
 end
 color3.__unm=function(a)
 	return color3.new(-a.r,-a.g,-a.b)
@@ -854,8 +1004,26 @@ end
 color3.__eq=function(a,b)
 	return a.r==b.r and a.g==b.g and a.b==b.b
 end
-color3.unpack=function(a)
-	return a.r,a.g,a.b
+color3.to_hsv=function(a)
+	local r,g,b=a.r,a.g,a.b
+	local h,s,v=0,0,0
+	local min_c,max_c=min(r,g,b),max(r,g,b)
+	local c=max_c-min_c
+	
+	v=max_c
+	
+	if c~=0 then
+		if max_c==r then
+			h=fmod(((g-b)/c),6)
+		elseif max_c==g then
+			h=(b-r)/c+2
+		else
+			h=(r-g)/c+4
+		end
+		h,s=h/6,c/v
+	end
+	
+	return h,s,v
 end
 color3.lerp=function(a,b,t)
 	return color3.__add(
@@ -863,12 +1031,15 @@ color3.lerp=function(a,b,t)
 		color3.__mul(b,t)
 	)
 end
+color3.unpack=function(a)
+	return a.r,a.g,a.b
+end
 
 --Data Types
 lmath.vector2 = setmetatable(vector2,vector2)
 lmath.vector3 = setmetatable(vector3,vector3)
-lmath.mat4    = setmetatable(mat4,mat4)
 lmath.quat    = setmetatable(quat,quat)
+lmath.mat4    = setmetatable(mat4,mat4)
 lmath.cframe  = setmetatable(cframe,cframe)
 lmath.rect    = setmetatable(rect,rect)
 lmath.udim2   = setmetatable(udim2,udim2)
