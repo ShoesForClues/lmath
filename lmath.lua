@@ -40,7 +40,7 @@ local pi    = math.pi
 local tpi   = pi*2
 
 local lmath={
-	_version={0,1,5}
+	_version={0,1,6}
 }
 
 lmath.clamp=function(v,min,max)
@@ -50,6 +50,13 @@ lmath.clamp=function(v,min,max)
 		return max
 	end
 	return v
+end
+
+lmath.sign=function(n)
+	return (n>0 and 1) or (n<0 and -1) or 0
+end
+lmath.csign=function(m,s)
+	return abs(m)*lmath.sign(s)
 end
 
 lmath.lerp=function(a,b,t)
@@ -98,7 +105,6 @@ local rect    = {}
 local udim    = {}
 local udim2   = {}
 local color3  = {}
-local color4  = {}
 
 --Constants
 local unit_x,unit_y,unit_z
@@ -167,9 +173,9 @@ vector2.rotate=function(a,b,angle)
 	return vector2.new(lmath.rotate(a.x,a.y,b.x,b.y,angle))
 end
 vector2.lerp=function(a,b,t)
-	return vector2.__add(
-		vector2.__mul(a,(1-t)),
-		vector2.__mul(b,t)
+	return vector2.new(
+		a.x*(1-t)+b.x*t,
+		a.y*(1-t)+b.y*t
 	)
 end
 vector2.unpack=function(a)
@@ -246,9 +252,10 @@ vector3.cross=function(a,b)
 	)
 end
 vector3.lerp=function(a,b,t)
-	return vector3.__add(
-		vector3.__mul(a,(1-t)),
-		vector3.__mul(b,t)
+	return vector3.new(
+		a.x*(1-t)+b.x*t,
+		a.y*(1-t)+b.y*t,
+		a.z*(1-t)+b.z*t
 	)
 end
 vector3.unpack=function(a)
@@ -322,6 +329,28 @@ end
 quat.__unm=function(a)
 	return quat.new(-a.x,-a.y,-a.z,-a.w)
 end
+quat.to_euler=function(a)
+	local pitch,roll,yaw
+	
+	local sinr_cosp=2*(a.w*a.x+a.y*a.z)
+	local cosr_cosp=1-2*(a.x*a.x+a.y*a.y)
+	local sinp=2*(a.w*a.y-a.z*a.x)
+	
+	roll=atan2(sinr_cosp,cosr_cosp)
+	
+	if abs(sinp)>=1 then
+		pitch=lmath.csign(pi/2,sinp)
+	else
+		pitch=asin(sinp)
+	end
+	
+	local siny_cosp=2*(a.w*a.z+a.x*a.y)
+	local cosy_cosp=1-2*(a.y*a.y+a.z*a.z)
+	
+	yaw=atan2(siny_cosp,cosy_cosp)
+	
+	return pitch,roll,yaw
+end
 quat.magnitude=function(a)
 	return sqrt(a.x^2+a.y^2+a.z^2+a.w^2)
 end
@@ -342,8 +371,6 @@ quat.slerp=function(a,b,t)
 		v1=-v1
 		dot=-dot
 	end
-	
-	local dot_threshold=0.9995
 	
 	if dot>0.9995 then
 		return (v0+t*(v1-v0)):normalize()
@@ -564,21 +591,21 @@ cframe.from_matrix=function(position,front,up)
 end
 cframe.from_look=function(eye,look)
 	local front=(eye-look):normalize()
-    local right=unit_y:cross(front):normalize()
-    local up=front:cross(right):normalize()
-    return cframe.new(
+	local right=unit_y:cross(front):normalize()
+	local up=front:cross(right):normalize()
+	return cframe.new(
 		eye.x,eye.y,eye.z,
 		right.x,right.y,right.z,
 		up.x,up.y,up.z,
 		front.x,front.y,front.z
 	)
 end
-cframe.from_euler=function(x,y,z)
+cframe.from_euler=function(x,y,z,px,py,pz)
 	local cx,sx=cos(x),sin(x)
 	local cy,sy=cos(y),sin(y)
 	local cz,sz=cos(z),sin(z)
 	return cframe.new(
-		0,0,0,
+		px,py,pz,
 		cy*cz,
 		-cy*sz,
 		sy,
@@ -590,22 +617,22 @@ cframe.from_euler=function(x,y,z)
 		cx*cy
 	)
 end
-cframe.from_axis=function(x,y,z,t)
+cframe.from_axis=function(x,y,z,t,px,py,pz)
 	local axis=vector3.new(x,y,z):normalize()
 	local ca,sa=cos(t),sin(t)
 	local r=unit_x*ca+unit_x:dot(axis)*axis*(1-ca)+axis:cross(unit_x)*sa
 	local t=unit_y*ca+unit_y:dot(axis)*axis*(1-ca)+axis:cross(unit_y)*sa
 	local b=unit_z*ca+unit_z:dot(axis)*axis*(1-ca)+axis:cross(unit_z)*sa
 	return cframe.new(
-		0,0,0,
+		px,py,pz,
 		r.x,t.x,b.x,
 		r.y,t.y,b.y,
 		r.z,t.z,b.z
 	);
 end
-cframe.from_quat=function(x,y,z,w)
+cframe.from_quat=function(x,y,z,w,px,py,pz)
 	return cframe.new(
-		0,0,0,
+		px,py,pz,
 		1-2*y^2-2*z^2,
 		2*(x*y-z*w),
 		2*(x*z+y*w),
@@ -717,39 +744,34 @@ cframe.to_axis=function(a)
 end
 cframe.to_quat=function(a)
 	local tr=a.r11+a.r22+a.r33
-	
 	if tr>0 then
 		local s=sqrt(tr+1)*2
-		return quat.new(
+		return
 			(a.r32-a.r23)/s,
 			(a.r13-a.r31)/s,
 			(a.r21-a.r12)/s,
 			0.25*s
-		)
 	elseif a.r11>a.r22 and a.r11>a.r33 then
 		local s=sqrt(1+a.r11-a.r22-a.r33)*2
-		return quat.new(
+		return
 			0.25*s,
 			(a.r12+a.r21)/s,
 			(a.r13+a.r31)/s,
 			(a.r32-a.r23)/s
-		)
 	elseif a.r22>a.r33 then
 		local s=sqrt(1+a.r22-a.r11-a.r33)*2
-		return quat.new(
+		return
 			(a.r12+a.r21)/s,
 			0.25*s,
 			(a.r23+a.r32)/s,
 			(a.r13-a.r31)/s
-		)
 	else
 		local s=sqrt(1+a.r33-a.r11-a.r22)*2
-		return quat.new(
+		return
 			(a.r21-a.r12)/s,
 			(a.r13+a.r31)/s,
 			(a.r23+a.r32)/s,
 			0.25*s
-		)
 	end
 end
 cframe.to_front=function(a)
@@ -780,10 +802,49 @@ cframe.to_mat4_view=function(a)
 		0,0,0,1
 	)
 end
-cframe.lerp=function(a,b,t)
-	local quat_slerp=a:to_quat():slerp(b:to_quat(),t)
-	local vec_lerp=a:to_position():lerp(b:to_position(),t)
-	return cframe.from_quat(quat_slerp:unpack())+vec_lerp
+cframe.lerp=function(a,b,t)	
+	local px=a.x*(1-t)+b.x*t
+	local py=a.y*(1-t)+b.y*t
+	local pz=a.z*(1-t)+b.z*t
+	
+	local x1,y1,z1,w1=a:to_quat()
+	local x2,y2,z2,w2=b:to_quat()
+	
+	local dot=(x1*x2)+(y1*y2)+(z1*z2)+(w1*w2)
+	
+	if dot<0 then
+		x2,y2,z2,w2=-x2,-y2,-z2,-w2
+		dot=-dot
+	end
+	
+	if dot>0.9995 then
+		local x3=(x1*t*(x2-x1))
+		local y3=(y1*t*(y2-y1))
+		local z3=(y1*t*(y2-y1))
+		local w3=(y1*t*(y2-y1))
+		local m3=sqrt(x3^2+y3^2+z3^2+w3^2)
+		
+		return cframe.from_quat(
+			x3/m3,y3/m3,z3/m3,w3/m3,
+			px,py,pz
+		)
+	end
+	
+	local theta_0=acos(dot)
+	local theta=theta_0*t
+	local sin_theta=sin(theta)
+	local sin_theta_0=sin(theta_0)
+	
+	local s0=cos(theta)-dot*sin_theta/sin_theta_0
+	local s1=sin_theta/sin_theta_0
+	
+	return cframe.from_quat(
+		(s0*x1)+(s1*x2),
+		(s0*y1)+(s1*y2),
+		(s0*z1)+(s1*z2),
+		(s0*w1)+(s1*w2),
+		px,py,pz
+	)
 end
 cframe.unpack=function(a)
 	return
@@ -795,7 +856,7 @@ end
 
 ------------------------------[UDim2]------------------------------
 udim2.__index=udim2
-udim2.new=function(x_scale,x_offset,y_scale,y_offset,o)
+udim2.new=function(x_scale,x_offset,y_scale,y_offset)
 	return setmetatable({
 		x={scale=x_scale or 0,offset=x_offset or 0},
 		y={scale=y_scale or 0,offset=y_offset or 0}
@@ -850,9 +911,11 @@ udim2.__eq=function(a,b)
 	)
 end
 udim2.lerp=function(a,b,t)
-	return udim2.__add(
-		udim2.__mul(a,(1-t)),
-		udim2.__mul(b,t)
+	return udim2.new(
+		a.x.scale*(1-t)+b.x.scale*t,
+		a.x.offset*(1-t)+b.x.offset*t,
+		a.y.scale*(1-t)+b.y.scale*t,
+		a.y.offset*(1-t)+b.y.offset*t
 	)
 end
 udim2.unpack=function(a)
@@ -861,7 +924,7 @@ end
 
 ------------------------------[Rect]------------------------------
 rect.__index=rect
-rect.new=function(min_x,min_y,max_x,max_y,o)
+rect.new=function(min_x,min_y,max_x,max_y)
 	return setmetatable({
 		min_x=min_x or 0,min_y=min_y or 0,
 		max_x=max_x or 0,max_y=max_y or 0
@@ -924,9 +987,11 @@ rect.clamp=function(a,b)
 	)
 end
 rect.lerp=function(a,b,t)
-	return rect.__add(
-		rect.__mul(a,(1-t)),
-		rect.__mul(b,t)
+	return rect.new(
+		a.min_x*(1-t)+b.min_x*t,
+		a.min_y*(1-t)+b.min_y*t,
+		a.max_x*(1-t)+b.max_x*t,
+		a.max_y*(1-t)+b.max_y*t
 	)
 end
 rect.unpack=function(a)
@@ -1026,9 +1091,10 @@ color3.to_hsv=function(a)
 	return h,s,v
 end
 color3.lerp=function(a,b,t)
-	return color3.__add(
-		color3.__mul(a,(1-t)),
-		color3.__mul(b,t)
+	return color3.new(
+		a.r*(1-t)+b.r*t,
+		a.g*(1-t)+b.g*t,
+		a.b*(1-t)+b.b*t
 	)
 end
 color3.unpack=function(a)
