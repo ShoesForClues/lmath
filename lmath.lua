@@ -392,12 +392,18 @@ end
 
 ------------------------------[Mat4]------------------------------
 mat4.__index=mat4
+mat4.identity=setmetatable({
+	1,0,0,0,
+	0,1,0,0,
+	0,0,1,0,
+	0,0,0,1
+},mat4)
 mat4.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return setmetatable({
-		{a1 or 0,a2 or 0,a3 or 0,a4 or 0},
-		{a5 or 0,a6 or 0,a7 or 0,a8 or 0},
-		{a9 or 0,a10 or 0,a11 or 0,a12 or 0},
-		{a13 or 0,a14 or 0,a15 or 0,a16 or 0}
+		a1 or 0,a2 or 0,a3 or 0,a4 or 0,
+		a5 or 0,a6 or 0,a7 or 0,a8 or 0,
+		a9 or 0,a10 or 0,a11 or 0,a12 or 0,
+		a13 or 0,a14 or 0,a15 or 0,a16 or 0
 	},mat4)
 end
 mat4.from_perspective=function(fov,aspect,near,far)
@@ -419,84 +425,76 @@ mat4.from_orthographic=function(left,right,top,bottom,near,far)
 		-((far+near)/(far-near)),1
 	)
 end
-mat4.from_identity=function()
-	return mat4.new(
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,0,1
-	)
-end
 mat4.__tostring=function(a)
 	return ("%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f"):format(a:unpack())
 end
 mat4.__unm=function(a)
 	return mat4.new(
-		-a[1][1],-a[1][2],-a[1][3],-a[1][4],
-		-a[2][1],-a[2][2],-a[2][3],-a[2][4],
-		-a[3][1],-a[3][2],-a[3][3],-a[3][4],
-		-a[4][1],-a[4][2],-a[4][3],-a[4][4]
+		-a[1],-a[2],-a[3],-a[4],
+		-a[5],-a[6],-a[7],-a[8],
+		-a[9],-a[10],-a[11],-a[12],
+		-a[13],-a[14],-a[15],-a[16]
 	)
 end
 mat4.__add=function(a,b)
 	return mat4.new(
-		a[1][1]+b[1][1],a[1][2]+b[1][2],a[1][3]+b[1][3],a[1][4]+b[1][4],
-		a[2][1]+b[2][1],a[2][2]+b[2][2],a[2][3]+b[2][3],a[2][4]+b[2][4],
-		a[3][1]+b[3][1],a[3][2]+b[3][2],a[3][3]+b[3][3],a[3][4]+b[3][4],
-		a[4][1]+b[4][1],a[4][2]+b[4][2],a[4][3]+b[4][3],a[4][4]+b[4][4]
+		a[1]+b[1],a[2]+b[2],a[3]+b[3],a[4]+b[4],
+		a[5]+b[5],a[6]+b[6],a[7]+b[7],a[8]+b[8],
+		a[9]+b[9],a[10]+b[10],a[11]+b[11],a[12]+b[12],
+		a[13]+b[13],a[14]+b[14],a[15]+b[15],a[16]+b[16]
 	)
 end
 mat4.__sub=function(a,b)
 	return mat4.new(
-		a[1][1]-b[1][1],a[1][2]-b[1][2],a[1][3]-b[1][3],a[1][4]-b[1][4],
-		a[2][1]-b[2][1],a[2][2]-b[2][2],a[2][3]-b[2][3],a[2][4]-b[2][4],
-		a[3][1]-b[3][1],a[3][2]-b[3][2],a[3][3]-b[3][3],a[3][4]-b[3][4],
-		a[4][1]-b[4][1],a[4][2]-b[4][2],a[4][3]-b[4][3],a[4][4]-b[4][4]
+		a[1]-b[1],a[2]-b[2],a[3]-b[3],a[4]-b[4],
+		a[5]-b[5],a[6]-b[6],a[7]-b[7],a[8]-b[8],
+		a[9]-b[9],a[10]-b[10],a[11]-b[11],a[12]-b[12],
+		a[13]-b[13],a[14]-b[14],a[15]-b[15],a[16]-b[16]
 	)
 end
 mat4.__mul=function(a,b)
 	if getmetatable(b)==vector3 then
 		return mat4.new(
-			a[1][1]*b.x,a[1][2],a[1][3],a[1][4],
-			a[2][1],a[2][2]*b.y,a[2][3],a[2][4],
-			a[3][1],a[3][2],a[3][3]*b.z,a[3][4],
-			a[4][1],a[4][2],a[4][3],a[4][4]
+			a[1]*b.x,a[2],a[3],a[4],
+			a[5],a[6]*b.y,a[7],a[8],
+			a[9],a[10],a[11]*b.z,a[12],
+			a[13],a[14],a[15],a[16]
 		)
 	else
 		return mat4.new(
-			a[1][1]*b[1][1]+a[1][2]*b[2][1]+a[1][3]*b[3][1]+a[1][4]*b[4][1],
-			a[1][1]*b[1][2]+a[1][2]*b[2][2]+a[1][3]*b[3][2]+a[1][4]*b[4][2],
-			a[1][1]*b[1][3]+a[1][2]*b[2][3]+a[1][3]*b[3][3]+a[1][4]*b[4][3],
-			a[1][1]*b[1][4]+a[1][2]*b[2][4]+a[1][3]*b[3][4]+a[1][4]*b[4][4],
-			a[2][1]*b[1][1]+a[2][2]*b[2][1]+a[2][3]*b[3][1]+a[2][4]*b[4][1],
-			a[2][1]*b[1][2]+a[2][2]*b[2][2]+a[2][3]*b[3][2]+a[2][4]*b[4][2],
-			a[2][1]*b[1][3]+a[2][2]*b[2][3]+a[2][3]*b[3][3]+a[2][4]*b[4][3],
-			a[2][1]*b[1][4]+a[2][2]*b[2][4]+a[2][3]*b[3][4]+a[2][4]*b[4][4],
-			a[3][1]*b[1][1]+a[3][2]*b[2][1]+a[3][3]*b[3][1]+a[3][4]*b[4][1],
-			a[3][1]*b[1][2]+a[3][2]*b[2][2]+a[3][3]*b[3][2]+a[3][4]*b[4][2],
-			a[3][1]*b[1][3]+a[3][2]*b[2][3]+a[3][3]*b[3][3]+a[3][4]*b[4][3],
-			a[3][1]*b[1][4]+a[3][2]*b[2][4]+a[3][3]*b[3][4]+a[3][4]*b[4][4],
-			a[4][1]*b[1][1]+a[4][2]*b[2][1]+a[4][3]*b[3][1]+a[4][4]*b[4][1],
-			a[4][1]*b[1][2]+a[4][2]*b[2][2]+a[4][3]*b[3][2]+a[4][4]*b[4][2],
-			a[4][1]*b[1][3]+a[4][2]*b[2][3]+a[4][3]*b[3][3]+a[4][4]*b[4][3],
-			a[4][1]*b[1][4]+a[4][2]*b[2][4]+a[4][3]*b[3][4]+a[4][4]*b[4][4]
+			a[1]*b[1]+a[2]*b[5]+a[3]*b[9]+a[4]*b[13],
+			a[1]*b[2]+a[2]*b[6]+a[3]*b[10]+a[4]*b[14],
+			a[1]*b[3]+a[2]*b[7]+a[3]*b[11]+a[4]*b[15],
+			a[1]*b[4]+a[2]*b[8]+a[3]*b[12]+a[4]*b[16],
+			a[5]*b[1]+a[6]*b[5]+a[7]*b[9]+a[8]*b[13],
+			a[5]*b[2]+a[6]*b[6]+a[7]*b[10]+a[8]*b[14],
+			a[5]*b[3]+a[6]*b[7]+a[7]*b[11]+a[8]*b[15],
+			a[5]*b[4]+a[6]*b[8]+a[7]*b[12]+a[8]*b[16],
+			a[9]*b[1]+a[10]*b[5]+a[11]*b[9]+a[12]*b[13],
+			a[9]*b[2]+a[10]*b[6]+a[11]*b[10]+a[12]*b[14],
+			a[9]*b[3]+a[10]*b[7]+a[11]*b[11]+a[12]*b[15],
+			a[9]*b[4]+a[10]*b[8]+a[11]*b[12]+a[12]*b[16],
+			a[13]*b[1]+a[14]*b[5]+a[15]*b[9]+a[16]*b[13],
+			a[13]*b[2]+a[14]*b[6]+a[15]*b[10]+a[16]*b[14],
+			a[13]*b[3]+a[14]*b[7]+a[15]*b[11]+a[16]*b[15],
+			a[13]*b[4]+a[14]*b[8]+a[15]*b[12]+a[16]*b[16]
 		)
 	end
 end
 mat4.__div=function(a,b)
 	if type(a)=="number" then
 		return mat4.new(
-			a/b[1][1],a/b[1][2],a/b[1][3],a/b[1][4],
-			a/b[2][1],a/b[2][2],a/b[2][3],a/b[2][4],
-			a/b[3][1],a/b[3][2],a/b[3][3],a/b[3][4],
-			a/b[4][1],a/b[4][2],a/b[4][3],a/b[4][4]
+			a/b[1],a/b[2],a/b[3],a/b[4],
+			a/b[5],a/b[6],a/b[7],a/b[8],
+			a/b[9],a/b[10],a/b[11],a/b[12],
+			a/b[13],a/b[14],a/b[15],a/b[16]
 		)
 	elseif type(b)=="number" then
 		return mat4.new(
-			b/a[1][1],b/a[1][2],b/a[1][3],b/a[1][4],
-			b/a[2][1],b/a[2][2],b/a[2][3],b/a[2][4],
-			b/a[3][1],b/a[3][2],b/a[3][3],b/a[3][4],
-			b/a[4][1],b/a[4][2],b/a[4][3],b/a[4][4]
+			a[1]/b,a[2]/b,a[3]/b,a[4]/b,
+			a[5]/b,a[6]/b,a[7]/b,a[8]/b,
+			a[9]/b,a[10]/b,a[11]/b,a[12]/b,
+			a[13]/b,a[14]/b,a[15]/b,a[16]/b
 		)
 	else
 		return mat4.new(
@@ -505,45 +503,19 @@ mat4.__div=function(a,b)
 	end
 end
 mat4.__eq=function(a,b)
-	return (
-		a[1][1]==b[1][1] and a[1][2]==b[1][2] and a[1][3]==b[1][3] and a[1][4]==b[1][4] and
-		a[2][1]==b[2][1] and a[2][2]==b[2][2] and a[2][3]==b[2][3] and a[2][4]==b[2][4] and
-		a[3][1]==b[3][1] and a[3][2]==b[3][2] and a[3][3]==b[3][3] and a[3][4]==b[3][4] and
-		a[4][1]==b[4][1] and a[4][2]==b[4][2] and a[4][3]==b[4][3] and a[4][4]==b[4][4]
-	)
-end
-mat4.rotate=function(a,angle,axis)
-	local l=axis:magnitude()
-	if l==0 then
-		return a
-	end
-	local x,y,z=axis.x/l,axis.y/l,axis.z/l
-	local c=cos(angle)
-	local s=sin(angle)
-	temp_mat4[1][1]=x^2*(1-c)+c
-	temp_mat4[1][2]=y*x*(1-c)+z*s
-	temp_mat4[1][3]=x*z*(1-c)-y*s
-	temp_mat4[1][4]=0
-	temp_mat4[2][1]=x*y*(1-c)-z*s
-	temp_mat4[2][2]=y^2*(1-c)+c
-	temp_mat4[2][3]=y*z*(1-c)+x*s
-	temp_mat4[2][4]=0
-	temp_mat4[3][1]=x*z*(1-c)+y*s
-	temp_mat4[3][2]=y*z*(1-c)-x*s
-	temp_mat4[3][3]=z*z*(1-c)+c
-	temp_mat4[3][4]=0
-	temp_mat4[4][1]=0
-	temp_mat4[4][2]=0
-	temp_mat4[4][3]=0
-	temp_mat4[4][4]=1
-	return a*temp_mat4
+	return
+		a[1]==b[1] and a[2]==b[2] and a[3]==b[3] and a[4]==b[4] and
+		a[5]==b[5] and a[6]==b[6] and a[7]==b[7] and a[8]==b[8] and
+		a[9]==b[9] and a[10]==b[10] and a[11]==b[11] and a[12]==b[12] and
+		a[13]==b[13] and a[14]==b[14] and a[15]==b[15] and a[16]==b[16]
 end
 mat4.translate=function(a,x,y,z)
-	temp_mat4[1][1],temp_mat4[1][2],temp_mat4[1][3],temp_mat4[1][4]=1,0,0,0
-	temp_mat4[2][1],temp_mat4[2][2],temp_mat4[2][3],temp_mat4[2][4]=0,1,0,0
-	temp_mat4[3][1],temp_mat4[3][2],temp_mat4[3][3],temp_mat4[3][4]=0,0,1,0
-	temp_mat4[4][1],temp_mat4[4][2],temp_mat4[4][3],temp_mat4[4][4]=x,y,z,1
-	return a*temp_mat4
+	return a*mat4.new(
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		x,y,z,1
+	)
 end
 mat4.scale=function(a,x,y,z)
 	return a*mat4.new(
@@ -555,18 +527,18 @@ mat4.scale=function(a,x,y,z)
 end
 mat4.transpose=function(a)
 	return mat4.new(
-		a[1][1],a[2][1],a[3][1],a[4][1],
-		a[1][2],a[2][2],a[3][2],a[4][2],
-		a[1][3],a[2][3],a[3][3],a[4][3],
-		a[1][4],a[2][4],a[3][4],a[4][4]
+		a[1],a[5],a[9],a[13],
+		a[2],a[6],a[10],a[14],
+		a[3],a[7],a[11],a[15],
+		a[4],a[8],a[12],a[16]
 	)
 end
 mat4.unpack=function(a)
 	return
-		a[1][1],a[1][2],a[1][3],a[1][4],
-		a[2][1],a[2][2],a[2][3],a[2][4],
-		a[3][1],a[3][2],a[3][3],a[3][4],
-		a[4][1],a[4][2],a[4][3],a[4][4]
+		a[1],a[2],a[3],a[4],
+		a[5],a[6],a[7],a[8],
+		a[9],a[10],a[11],a[12],
+		a[13],a[14],a[15],a[16]
 end
 
 ------------------------------[CFrame]------------------------------
@@ -679,22 +651,38 @@ cframe.__mul=function(a,b)
 			a.z+b.x*a.r31+b.y*a.r32+b.z*a.r33
 		)
 	else
-		local mat=mat4.new(
-			a.r11,a.r12,a.r13,a.x,
-			a.r21,a.r22,a.r23,a.y,
-			a.r31,a.r32,a.r33,a.z,
-			0,0,0,1
-		)*mat4.new(
-			b.r11,b.r12,b.r13,b.x,
-			b.r21,b.r22,b.r23,b.y,
-			b.r31,b.r32,b.r33,b.z,
-			0,0,0,1
-		)
+		local a11,a12,a13,a14=a.r11,a.r12,a.r13,a.x
+		local a21,a22,a23,a24=a.r21,a.r22,a.r23,a.y
+		local a31,a32,a33,a34=a.r31,a.r32,a.r33,a.z
+		--local a41,a42,a43,a44=0,0,0,1
+		
+		local b11,b12,b13,b14=b.r11,b.r12,b.r13,b.x
+		local b21,b22,b23,b24=b.r21,b.r22,b.r23,b.y
+		local b31,b32,b33,b34=b.r31,b.r32,b.r33,b.z
+		--local b41,b42,b43,b44=0,0,0,1
+		
+		local c11=a11*b11+a12*b21+a13*b31+a14*b41
+		local c12=a11*b12+a12*b22+a13*b32+a14*b42
+		local c13=a11*b13+a12*b23+a13*b33+a14*b43
+		local c14=a11*b14+a12*b24+a13*b34+a14*b44
+		local c21=a21*b11+a22*b21+a23*b31+a24*b41
+		local c22=a21*b12+a22*b22+a23*b32+a24*b42
+		local c23=a21*b13+a22*b23+a23*b33+a24*b43
+		local c24=a21*b14+a22*b24+a23*b34+a24*b44
+		local c31=a31*b11+a32*b21+a33*b31+a34*b41
+		local c32=a31*b12+a32*b22+a33*b32+a34*b42
+		local c33=a31*b13+a32*b23+a33*b33+a34*b43
+		local c34=a31*b14+a32*b24+a33*b34+a34*b44
+		--local c41=a41*b11+a42*b21+a43*b31+a44*b41
+		--local c42=a41*b12+a42*b22+a43*b32+a44*b42
+		--local c43=a41*b13+a42*b23+a43*b33+a44*b43
+		--local c44=a41*b14+a42*b24+a43*b34+a44*b44
+		
 		return cframe.new(
-			mat[1][4],mat[2][4],mat[3][4],
-			mat[1][1],mat[1][2],mat[1][3],
-			mat[2][1],mat[2][2],mat[2][3],
-			mat[3][1],mat[3][2],mat[3][3]
+			c14,c24,c34,
+			c11,c12,c13,
+			c21,c22,c23,
+			c31,c32,c33
 		)
 	end
 end
@@ -858,68 +846,68 @@ end
 udim2.__index=udim2
 udim2.new=function(x_scale,x_offset,y_scale,y_offset)
 	return setmetatable({
-		x={scale=x_scale or 0,offset=x_offset or 0},
-		y={scale=y_scale or 0,offset=y_offset or 0}
+		x_scale=x_scale,x_offset=x_offset,
+		y_scale=y_scale,y_offset=y_offset
 	},udim2)
 end
 udim2.__tostring=function(a)
 	return ("%f, %d, %f, %d"):format(a:unpack())
 end
 udim2.__unm=function(a)
-	return udim2.new(-a.x.scale,-a.x.offset,-a.y.scale,-a.y.offset)
+	return udim2.new(-a.x_scale,-a.x_offset,-a.y_scale,-a.y_offset)
 end
 udim2.__add=function(a,b)
 	return udim2.new(
-		a.x.scale+b.x.scale,a.x.offset+b.x.offset,
-		a.y.scale+b.y.scale,a.y.offset+b.y.offset
+		a.x_scale+b.x_scale,a.x_offset+b.x_offset,
+		a.y_scale+b.y_scale,a.y_offset+b.y_offset
 	)
 end
 udim2.__sub=function(a,b)
 	return udim2.new(
-		a.x.scale-b.x.scale,a.x.offset-b.x.offset,
-		a.y.scale-b.y.scale,a.y.offset-b.y.offset
+		a.x_scale-b.x_scale,a.x_offset-b.x_offset,
+		a.y_scale-b.y_scale,a.y_offset-b.y_offset
 	)
 end
 udim2.__mul=function(a,b)
 	if type(a)=="number" then
-		return udim2.new(a*b.x.scale,a*b.x.offset,a*b.y.scale,a*b.y.offset)
+		return udim2.new(a*b.x_scale,a*b.x_offset,a*b.y_scale,a*b.y_offset)
 	elseif type(b)=="number" then
-		return udim2.new(a.x.scale*b,a.x.offset*b,a.y.scale*b,a.y.offset*b)
+		return udim2.new(a.x_scale*b,a.x_offset*b,a.y_scale*b,a.y_offset*b)
 	else
 		return udim2.new(
-			a.x.scale*b.x.scale,a.x.offset*b.x.offset,
-			a.y.scale*b.y.scale,a.y.offset*b.y.offset
+			a.x_scale*b.x_scale,a.x_offset*b.x_offset,
+			a.y_scale*b.y_scale,a.y_offset*b.y_offset
 		)
 	end
 end
 udim2.__div=function(a,b,o)
 	if type(a)=="number" then
-		return udim2.new(a/b.x.scale,a/b.x.offset,a/b.y.scale,a/b.y.offset)
+		return udim2.new(a/b.x_scale,a/b.x_offset,a/b.y_scale,a/b.y_offset)
 	elseif type(b)=="number" then
-		return udim2.new(a.x.scale/b,a.x.offset/b,a.y.scale/b,a.y.offset/b)
+		return udim2.new(a.x_scale/b,a.x_offset/b,a.y_scale/b,a.y_offset/b)
 	else
 		return udim2.new(
-			a.x.scale/b.x.scale,a.x.offset/b.x.offset,
-			a.y.scale/b.y.scale,a.y.offset/b.y.offset
+			a.x_scale/b.x_scale,a.x_offset/b.x_offset,
+			a.y_scale/b.y_scale,a.y_offset/b.y_offset
 		)
 	end
 end
 udim2.__eq=function(a,b)
 	return (
-		a.x.scale==b.x.scale and a.x.offset==b.x.offset and 
-		a.y.scale==b.y.scale and a.y.offset==b.y.offset
+		a.x_scale==b.x_scale and a.x_offset==b.x_offset and 
+		a.y_scale==b.y_scale and a.y_offset==b.y_offset
 	)
 end
 udim2.lerp=function(a,b,t)
 	return udim2.new(
-		a.x.scale*(1-t)+b.x.scale*t,
-		a.x.offset*(1-t)+b.x.offset*t,
-		a.y.scale*(1-t)+b.y.scale*t,
-		a.y.offset*(1-t)+b.y.offset*t
+		a.x_scale*(1-t)+b.x_scale*t,
+		a.x_offset*(1-t)+b.x_offset*t,
+		a.y_scale*(1-t)+b.y_scale*t,
+		a.y_offset*(1-t)+b.y_offset*t
 	)
 end
 udim2.unpack=function(a)
-	return a.x.scale,a.x.offset,a.y.scale,a.y.offset
+	return a.x_scale,a.x_offset,a.y_scale,a.y_offset
 end
 
 ------------------------------[Rect]------------------------------
