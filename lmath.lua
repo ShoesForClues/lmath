@@ -654,12 +654,12 @@ cframe.__mul=function(a,b)
 		local a11,a12,a13,a14=a.r11,a.r12,a.r13,a.x
 		local a21,a22,a23,a24=a.r21,a.r22,a.r23,a.y
 		local a31,a32,a33,a34=a.r31,a.r32,a.r33,a.z
-		--local a41,a42,a43,a44=0,0,0,1
+		local a41,a42,a43,a44=0,0,0,1
 		
 		local b11,b12,b13,b14=b.r11,b.r12,b.r13,b.x
 		local b21,b22,b23,b24=b.r21,b.r22,b.r23,b.y
 		local b31,b32,b33,b34=b.r31,b.r32,b.r33,b.z
-		--local b41,b42,b43,b44=0,0,0,1
+		local b41,b42,b43,b44=0,0,0,1
 		
 		local c11=a11*b11+a12*b21+a13*b31+a14*b41
 		local c12=a11*b12+a12*b22+a13*b32+a14*b42
@@ -673,10 +673,10 @@ cframe.__mul=function(a,b)
 		local c32=a31*b12+a32*b22+a33*b32+a34*b42
 		local c33=a31*b13+a32*b23+a33*b33+a34*b43
 		local c34=a31*b14+a32*b24+a33*b34+a34*b44
-		--local c41=a41*b11+a42*b21+a43*b31+a44*b41
-		--local c42=a41*b12+a42*b22+a43*b32+a44*b42
-		--local c43=a41*b13+a42*b23+a43*b33+a44*b43
-		--local c44=a41*b14+a42*b24+a43*b34+a44*b44
+		local c41=a41*b11+a42*b21+a43*b31+a44*b41
+		local c42=a41*b12+a42*b22+a43*b32+a44*b42
+		local c43=a41*b13+a42*b23+a43*b33+a44*b43
+		local c44=a41*b14+a42*b24+a43*b34+a44*b44
 		
 		return cframe.new(
 			c14,c24,c34,
