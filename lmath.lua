@@ -1,5 +1,5 @@
 --[[
-Lua Math Library
+Light Math Library
 
 MIT License
 
@@ -44,13 +44,13 @@ local tpi   = pi*2
 -------------------------------------------------------------------------------
 
 local lmath={
-	version="0.1.9"
+	version="0.2.0"
 }
 
 --Data Types
 local vector2 = {}
 local vector3 = {}
-local mat4    = {}
+local matrix4 = {}
 local rect    = {}
 local udim2   = {}
 local color3  = {}
@@ -59,7 +59,11 @@ local color3  = {}
 local unit_x,unit_y,unit_z
 
 --Temp
-local temp_mat4
+local temp_matrix4
+
+local temp_vector3_1
+local temp_vector3_2
+local temp_vector3_3
 
 -------------------------------------------------------------------------------
 
@@ -75,6 +79,7 @@ end
 lmath.sign=function(n)
 	return (n>0 and 1) or (n<0 and -1) or 0
 end
+
 lmath.csign=function(m,s)
 	return abs(m)*lmath.sign(s)
 end
@@ -82,9 +87,11 @@ end
 lmath.lerp=function(a,b,t)
 	return a*(1-t)+b*t
 end
+
 lmath.alerp=function(a,b,t)
 	return a+((((b-a)%tpi+rad(540))%tpi-pi)*t)%tpi
 end
+
 lmath.bezier_lerp=function(points,t)
 	local pointsTB=points
 	while #pointsTB~=1 do
@@ -103,6 +110,7 @@ lmath.round=function(num,decimal_place)
 	local mult=10^(decimal_place or 0)
 	return floor(num*mult+0.5)/mult
 end
+
 lmath.round_multiple=function(num,multiple)
 	return floor(num/multiple+0.5)*multiple
 end
@@ -176,7 +184,10 @@ vector2.negate=function(a)
 end
 
 vector2.normalize=function(a)
-	local m=a:magnitude()
+	local m=a:get_magnitude()
+	if m==0 then
+		return a
+	end
 	return a:set(a.x/m,a.y/m)
 end
 
@@ -288,8 +299,11 @@ vector3.negate=function(a)
 end
 
 vector3.normalize=function(a)
-	local m=a:magnitude()
-	return a:set(a.x/m,a.y/m)
+	local m=a:get_magnitude()
+	if m==0 then
+		return a
+	end
+	return a:set(a.x/m,a.y/m,a.z/m)
 end
 
 vector3.lerp=function(a,b,t)
@@ -330,18 +344,18 @@ end
 
 -------------------------------------------------------------------------------
 
-mat4.__index=mat4
+matrix4.__index=matrix4
 
-mat4.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
+matrix4.new=function(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return setmetatable({
 		a1 or 1,a2 or 0,a3 or 0,a4 or 0,
 		a5 or 0,a6 or 1,a7 or 0,a8 or 0,
 		a9 or 0,a10 or 0,a11 or 1,a12 or 0,
 		a13 or 0,a14 or 0,a15 or 0,a16 or 1
-	},mat4)
+	},matrix4)
 end
 
-mat4.unpack=function(a)
+matrix4.unpack=function(a)
 	return
 		a[1],a[2],a[3],a[4],
 		a[5],a[6],a[7],a[8],
@@ -349,7 +363,7 @@ mat4.unpack=function(a)
 		a[13],a[14],a[15],a[16]
 end
 
-mat4.set=function(a,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
+matrix4.set=function(a,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	a[1],a[2],a[3],a[4]=a1 or 1,a2 or 0,a3 or 0,a4 or 0
 	a[5],a[6],a[7],a[8]=a5 or 0,a6 or 1,a7 or 0,a8 or 0
 	a[9],a[10],a[11],a[12]=a9 or 0,a10 or 0,a11 or 1,a12 or 0
@@ -357,7 +371,7 @@ mat4.set=function(a,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return a
 end
 
-mat4.set_identity=function(a)
+matrix4.set_identity=function(a)
 	return a:set(
 		1,0,0,0,
 		0,1,0,0,
@@ -366,39 +380,37 @@ mat4.set_identity=function(a)
 	)
 end
 
-mat4.set_perspective=function(a,fov,aspect,near,far)
-	local scale=tan(rad(fov)/2)
+matrix4.set_perspective=function(a,fov,aspect,n,f)
+	local t=tan(rad(fov)/2)
 	return a:set(
-		1/(scale*aspect),0,0,0,
-		0,1/scale,0,0,
-		0,0,-(far+near)/(far-near),-1,
-		0,0,-(2*far*near)/(far-near),0
+		1/(t*aspect),0,0,0,
+		0,1/t,0,0,
+		0,0,-(f+n)/(f-n),-1,
+		0,0,-(2*f*n)/(f-n),0
 	)
 end
 
-mat4.set_orthographic=function(a,left,right,top,bottom,near,far)
+matrix4.set_orthographic=function(a,l,r,t,b,n,f)
 	return a:set(
-		2/(right-left),0,0,0,
-		0,2/(top-bottom),0,0,
-		0,0,-2/(far-near),0,
-		-((right+left)/(right-left)),
-		-((top+bottom)/(top-bottom)),
-		-((far+near)/(far-near)),1
+		2/(r-l),0,0,-(r+l)/(r-l),
+		0,2/(t-b),0,-(t+b)/(t-b),
+		0,0,-2/(f-n),-(f+n)/(f-n),
+		0,0,0,1
 	)
-end
+end 
 
-mat4.set_position=function(a,x,y,z)
+matrix4.set_position=function(a,x,y,z)
 	a[4],a[8],a[12]=x or 0,y or 0,z or 0
 	return a
 end
 
-mat4.set_euler=function(a,x,y,z)
+matrix4.set_euler=function(a,x,y,z)
 	local cx,sx=cos(x),sin(x)
 	local cy,sy=cos(y),sin(y)
 	local cz,sz=cos(z),sin(z)
 	
 	a[1]=cy*cz
-	a[2]=-cy*sz,sy
+	a[2]=-cy*sz
 	a[3]=sy
 	
 	a[5]=cz*sx*sy+cx*sz
@@ -412,7 +424,7 @@ mat4.set_euler=function(a,x,y,z)
 	return a
 end
 
-mat4.set_axis=function(a,x,y,z,t)
+matrix4.set_axis=function(a,x,y,z,t)
 	local ca,sa=cos(t),sin(t)
 	local m=sqrt(x^2+y^2+z^2)
 	
@@ -433,7 +445,7 @@ mat4.set_axis=function(a,x,y,z,t)
 	return a
 end
 
-mat4.set_quat=function(a,x,y,z,w)
+matrix4.set_quat=function(a,x,y,z,w)
 	a[1]=1-2*y^2-2*z^2
 	a[2]=2*(x*y-z*w)
 	a[3]=2*(x*z+y*w)
@@ -449,22 +461,49 @@ mat4.set_quat=function(a,x,y,z,w)
 	return a
 end
 
-mat4.set_look=function(a,position,front,up)
-	local x_axis=up:cross(front):normalize()
-	local y_axis=front:cross(x_axis):normalize()
-	return a:set(
-		x_axis.x,y_axis.x,front.x,position.x,
-		x_axis.y,y_axis.y,front.y,position.y,
-		x_axis.z,y_axis.z,front.z,position.z,
-		0,0,0,1
-	)
+matrix4.set_look=function(a,dir_x,dir_y,dir_z,up_x,up_y,up_z)
+	up_x,up_y,up_z=up_x or 0,up_y or 1,up_z or 0
+	
+	local from_x,from_y,from_z=a:get_position()
+	
+	local to_x = from_x+dir_x
+	local to_y = from_y+dir_y
+	local to_z = from_z+dir_z
+	
+	local front_x = from_x-to_x
+	local front_y = from_y-to_y
+	local front_z = from_z-to_z
+	local front_m = sqrt(front_x^2+front_y^2+front_z^2)
+	
+	front_x = front_x/front_m
+	front_y = front_y/front_m
+	front_z = front_z/front_m
+	
+	local right_x = up_y*front_z-up_z*front_y
+	local right_y = up_z*front_x-up_x*front_z
+	local right_z = up_x*front_y-up_y*front_x
+	local right_m = sqrt(right_x^2+right_y^2+right_z^2)
+	
+	right_x = right_x/right_m
+	right_y = right_y/right_m
+	right_z = right_z/right_m
+	
+	local top_x = front_y*right_z-front_z*right_y
+	local top_y = front_z*right_x-front_x*right_z
+	local top_z = front_x*right_y-front_y*right_x
+	
+	a[1],a[2],a[3]=right_x,top_x,front_x
+	a[5],a[6],a[7]=right_y,top_y,front_y
+	a[9],a[10],a[11]=right_z,top_z,front_z
+	
+	return a
 end
 
-mat4.get_position=function(a)
+matrix4.get_position=function(a)
 	return a[4],a[8],a[12]
 end
 
-mat4.get_euler=function(a)
+matrix4.get_euler=function(a)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
 	local a31,a32,a33,a34=a[9],a[10],a[11],a[12]
@@ -473,7 +512,7 @@ mat4.get_euler=function(a)
 		atan2(-a23,a33),asin(a13),atan2(-a12,a11)
 end
 
-mat4.get_axis=function(a)
+matrix4.get_axis=function(a)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
 	local a31,a32,a33,a34=a[9],a[10],a[11],a[12]
@@ -486,7 +525,7 @@ mat4.get_axis=function(a)
 		acos((a11+a22+a33-1)/2)
 end
 
-mat4.get_quat=function(a)
+matrix4.get_quat=function(a)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
 	local a31,a32,a33,a34=a[9],a[10],a[11],a[12]
@@ -506,7 +545,7 @@ mat4.get_quat=function(a)
 			(a12+a21)/s,
 			(a13+a31)/s,
 			(a32-a23)/s
-	elseif a.r22>a.r33 then
+	elseif a22>a33 then
 		local s=sqrt(1+a22-a11-a33)*2
 		return
 			(a12+a21)/s,
@@ -523,7 +562,7 @@ mat4.get_quat=function(a)
 	end
 end
 
-mat4.multiply=function(a,b)
+matrix4.multiply=function(a,b)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
 	local a31,a32,a33,a34=a[9],a[10],a[11],a[12]
@@ -554,8 +593,8 @@ mat4.multiply=function(a,b)
 	)
 end
 
-mat4.translate=function(a,x,y,z)
-	return a:multiply(temp_mat4:set(
+matrix4.translate=function(a,x,y,z)
+	return a:multiply(temp_matrix4:set(
 		1,0,0,x,
 		0,1,0,y,
 		0,0,1,z,
@@ -563,8 +602,8 @@ mat4.translate=function(a,x,y,z)
 	))
 end
 
-mat4.scale=function(a,x,y,z)
-	return a:multiply(temp_mat4:set(
+matrix4.scale=function(a,x,y,z)
+	return a:multiply(temp_matrix4:set(
 		x,0,0,0,
 		0,y,0,0,
 		0,0,z,0,
@@ -572,7 +611,7 @@ mat4.scale=function(a,x,y,z)
 	))
 end
 
-mat4.inverse=function(a)
+matrix4.inverse=function(a)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
 	local a31,a32,a33,a34=a[9],a[10],a[11],a[12]
@@ -609,19 +648,19 @@ mat4.inverse=function(a)
 	)
 end
 
-mat4.rotate_euler=function(a,x,y,z)
-	return a:multiply(temp_mat4:set_identity():set_euler(x,y,z))
+matrix4.rotate_euler=function(a,x,y,z)
+	return a:multiply(temp_matrix4:set_identity():set_euler(x,y,z))
 end
 
-mat4.rotate_axis=function(a,x,y,z,t)
-	return a:multiply(temp_mat4:set_identity():set_axis(x,y,z,t))
+matrix4.rotate_axis=function(a,x,y,z,t)
+	return a:multiply(temp_matrix4:set_identity():set_axis(x,y,z,t))
 end
 
-mat4.rotate_quat=function(a,x,y,z,w)
-	return a:multiply(temp_mat4:set_identity():set_quat(x,y,z,w))
+matrix4.rotate_quat=function(a,x,y,z,w)
+	return a:multiply(temp_matrix4:set_identity():set_quat(x,y,z,w))
 end
 
-mat4.transpose=function(a)
+matrix4.transpose=function(a)
 	return a:set(
 		a[1],a[2],a[3],a[4],
 		a[5],a[6],a[7],a[8],
@@ -630,16 +669,18 @@ mat4.transpose=function(a)
 	)
 end
 
-mat4.lerp=function(a,b,t)
+matrix4.lerp=function(a,b,t)
 	local ax,ay,az=a:get_position()
 	local bx,by,bz=b:get_position()
 	
+	a:set_position(
+		ax*(1-t)+bx*t,
+		ay*(1-t)+by*t,
+		az*(1-t)+bz*t
+	)
+	
 	local x1,y1,z1,w1=a:get_quat()
 	local x2,y2,z2,w2=b:get_quat()
-	
-	local px=ax*(1-t)+bx*t
-	local py=ay*(1-t)+by*t
-	local pz=az*(1-t)+bz*t
 	
 	local dot=(x1*x2)+(y1*y2)+(z1*z2)+(w1*w2)
 	
@@ -649,13 +690,13 @@ mat4.lerp=function(a,b,t)
 	end
 	
 	if dot>0.9995 then
-		local x3=x1*t*(x2-x1)
-		local y3=y1*t*(y2-y1)
-		local z3=y1*t*(y2-y1)
-		local w3=y1*t*(y2-y1)
+		local x3=x1*(1-t)+x2*t
+		local y3=y1*(1-t)+y2*t
+		local z3=z1*(1-t)+z2*t
+		local w3=w1*(1-t)+w2*t
 		local m3=sqrt(x3^2+y3^2+z3^2+w3^2)
 		
-		return a:set_position(px,py,pz):set_quat(
+		return a:set_quat(
 			x3/m3,y3/m3,z3/m3,w3/m3
 		)
 	end
@@ -668,7 +709,7 @@ mat4.lerp=function(a,b,t)
 	local s0=cos(theta)-dot*sin_theta/sin_theta_0
 	local s1=sin_theta/sin_theta_0
 	
-	return a:set_position(px,py,pz):set_quat(
+	return a:set_quat(
 		(s0*x1)+(s1*x2),
 		(s0*y1)+(s1*y2),
 		(s0*z1)+(s1*z2),
@@ -676,21 +717,21 @@ mat4.lerp=function(a,b,t)
 	)
 end
 
-mat4.__tostring=function(a)
+matrix4.__tostring=function(a)
 	return ("%f "):rep(16):format(a:unpack())
 end
 
-mat4.__add=function(a,b)
+matrix4.__add=function(a,b)
 	local x,y,z=a:get_position()
-	return mat4.new(a:unpack()):set_position(x+b.x,y+b.y,z+b.z)
+	return matrix4.new(a:unpack()):set_position(x+b.x,y+b.y,z+b.z)
 end
 
-mat4.__sub=function(a,b)
+matrix4.__sub=function(a,b)
 	local x,y,z=a:get_position()
-	return mat4.new(a:unpack()):set_position(x-b.x,y-b.y,z-b.z)
+	return matrix4.new(a:unpack()):set_position(x-b.x,y-b.y,z-b.z)
 end
 
-mat4.__mul=function(a,b)
+matrix4.__mul=function(a,b)
 	if getmetatable(b)==vector3 then
 		local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 		local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
@@ -703,11 +744,11 @@ mat4.__mul=function(a,b)
 			a34+b.x*a31+b.y*a32+b.z*a33
 		)
 	else
-		return mat4.new(a:unpack()):multiply(b)
+		return matrix4.new(a:unpack()):multiply(b)
 	end
 end
 
-mat4.__eq=function(a,b)
+matrix4.__eq=function(a,b)
 	return
 		a[1]==b[1] and a[2]==b[2] and a[3]==b[3] and a[4]==b[4]
 		and a[5]==b[5] and a[6]==b[6] and a[7]==b[7] and a[8]==b[8]
@@ -899,11 +940,7 @@ end
 color3.__index=color3
 
 color3.new=function(r,g,b)
-	return setmetatable({
-		r=r or 0,
-		g=g or 0,
-		b=b or 0
-	},color3)
+	return setmetatable({r=r or 0,g=g or 0,b=b or 0},color3)
 end
 
 color3.unpack=function(a)
@@ -1021,7 +1058,7 @@ end
 --Data Types
 lmath.vector2 = setmetatable(vector2,vector2)
 lmath.vector3 = setmetatable(vector3,vector3)
-lmath.mat4    = setmetatable(mat4,mat4)
+lmath.matrix4 = setmetatable(matrix4,matrix4)
 lmath.rect    = setmetatable(rect,rect)
 lmath.udim2   = setmetatable(udim2,udim2)
 lmath.color3  = setmetatable(color3,color3)
@@ -1032,6 +1069,10 @@ unit_y = lmath.vector3.new(0,1,0)
 unit_z = lmath.vector3.new(0,0,1)
 
 --Temps
-temp_mat4 = lmath.mat4.new()
+temp_matrix4 = lmath.matrix4.new()
+
+temp_vector3_1 = lmath.vector3.new()
+temp_vector3_2 = lmath.vector3.new()
+temp_vector3_3 = lmath.vector3.new()
 
 return lmath
