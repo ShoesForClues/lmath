@@ -27,6 +27,7 @@ print(a) --5 7 9
 
 local c=a+b --You can use overloaded operators but it will create a new object each time.
 ```
+You can find more details from the [wiki](https://github.com/ShoesForClues/lmath/wiki).
 
 # License
 This software is free to use. You can modify it and redistribute it under the terms of the 
