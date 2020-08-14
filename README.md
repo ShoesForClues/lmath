@@ -1,30 +1,32 @@
 # lmath
 A light math library written in Lua.
 
-# How To Use
+# Object Types
+
+- **vector2**
+- **vector3**
+- **udim2**
+- **rect**
+- **color3**
+- **matrix4**
+
+# Example Usage
 ```lua
-local lmath=require("lmath")
+local a = lmath.vector3.new(1,2,3)
 
-local a=lmath.vector2.new(5,2)
-local b=lmath.vector3.new(2,5,6)
+print(a) --1 2 3
 
-print(a) --5, 2
-print(a*2) --10, 4
-print(a:lerp(lmath.vector2.new(20,6),0.5)) --12.5, 4
+local b = lmath.vector3.new()
+b:set(4,5,6) --Sets b's components to x=4,y=5,z=6
 
-print(b.z) --6
-print(b:dot(lmath.vector3.new(8,2,4))) --50
-print(b:cross(lmath.vector3.new(8,2,4))) --8, 40, -36
+print(b) --4 5 6
+
+a:add(b) --Performs the operation on object a
+
+print(a) --5 7 9
+
+local c=a+b --Using the overloaded operators will create a new object
 ```
-
-# Data Types
-
-- **vector2**(x,y)
-- **vector3**(x,y,z)
-- **udim2**(x_scale,x_offset,y_scale,y_offset)
-- **rect**(min_x,min_y,max_x,max_y)
-- **color3**(r,g,b)
-- **mat4**(...)
 
 # License
 This software is free to use. You can modify it and redistribute it under the terms of the 
