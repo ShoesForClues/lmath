@@ -25,7 +25,7 @@ a:add(b) --Performs the operation on object a
 
 print(a) --5 7 9
 
-local c=a+b --Using the overloaded operators will create a new object
+local c=a+b --You can use overloaded operators but it will create a new object each time.
 ```
 
 # License
