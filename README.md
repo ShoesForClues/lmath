@@ -17,7 +17,7 @@ local a = lmath.vector3.new(1,2,3)
 print(a) --1 2 3
 
 local b = lmath.vector3.new()
-b:set(4,5,6) --Sets b's components to x=4,y=5,z=6
+b:set(4,5,6) --Sets b's components to x=4,y=5,z=6. You can also set them manually (Ex: b.x=4)
 
 print(b) --4 5 6
 
