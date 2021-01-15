@@ -44,7 +44,7 @@ local tpi   = pi*2
 -------------------------------------------------------------------------------
 
 local lmath={
-	version="0.2.0"
+	version="0.2.2"
 }
 
 --Data Types
@@ -98,7 +98,7 @@ lmath.bezier_lerp=function(points,t)
 		local ntb={}
 		for k,v in ipairs(pointsTB) do
 			if k~=1 then
-				ntb[k-1]=pointsTB[k-1]:lerp(v,t)
+				ntb[k-1]=pointsTB[k-1]:clone():lerp(v,t)
 			end
 		end
 		pointsTB=ntb
@@ -141,6 +141,10 @@ end
 vector2.set=function(a,x,y)
 	a.x,a.y=x or 0,y or 0
 	return a
+end
+
+vector2.clone=function(a)
+	return vector2.new(a:unpack())
 end
 
 vector2.get_magnitude=function(a)
@@ -245,6 +249,10 @@ end
 vector3.set=function(a,x,y,z)
 	a.x,a.y,a.z=x or 0,y or 0,z or 0
 	return a
+end
+
+vector3.clone=function(a)
+	return vector3.new(a:unpack())
 end
 
 vector3.get_magnitude=function(a)
@@ -371,6 +379,10 @@ matrix4.set=function(a,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16)
 	return a
 end
 
+matrix4.clone=function(a)
+	return matrix4.new(a:unpack())
+end
+
 matrix4.set_identity=function(a)
 	return a:set(
 		1,0,0,0,
@@ -461,23 +473,8 @@ matrix4.set_quat=function(a,x,y,z,w)
 	return a
 end
 
-matrix4.set_look=function(a,dir_x,dir_y,dir_z,up_x,up_y,up_z)
+matrix4.set_look=function(a,front_x,front_y,front_z,up_x,up_y,up_z)
 	up_x,up_y,up_z=up_x or 0,up_y or 1,up_z or 0
-	
-	local from_x,from_y,from_z=a:get_position()
-	
-	local to_x = from_x+dir_x
-	local to_y = from_y+dir_y
-	local to_z = from_z+dir_z
-	
-	local front_x = from_x-to_x
-	local front_y = from_y-to_y
-	local front_z = from_z-to_z
-	local front_m = sqrt(front_x^2+front_y^2+front_z^2)
-	
-	front_x = front_x/front_m
-	front_y = front_y/front_m
-	front_z = front_z/front_m
 	
 	local right_x = up_y*front_z-up_z*front_y
 	local right_y = up_z*front_x-up_x*front_z
@@ -562,6 +559,10 @@ matrix4.get_quat=function(a)
 	end
 end
 
+matrix4.get_look=function(a)
+	return a[3],a[7],a[11]
+end
+
 matrix4.multiply=function(a,b)
 	local a11,a12,a13,a14=a[1],a[2],a[3],a[4]
 	local a21,a22,a23,a24=a[5],a[6],a[7],a[8]
@@ -593,13 +594,18 @@ matrix4.multiply=function(a,b)
 	)
 end
 
-matrix4.translate=function(a,x,y,z)
+matrix4.transform=function(a,x,y,z)
 	return a:multiply(temp_matrix4:set(
 		1,0,0,x,
 		0,1,0,y,
 		0,0,1,z,
 		0,0,0,1
 	))
+end
+
+matrix4.translate=function(a,x,y,z)
+	a[4],a[8],a[12]=a[4]+x,a[8]+y,a[12]+z
+	return a
 end
 
 matrix4.scale=function(a,x,y,z)
@@ -682,6 +688,12 @@ matrix4.lerp=function(a,b,t)
 	local x1,y1,z1,w1=a:get_quat()
 	local x2,y2,z2,w2=b:get_quat()
 	
+	local m1=sqrt(x1^2+y1^2+z1^2+w1^2)
+	local m2=sqrt(x2^2+y2^2+z2^2+w2^2)
+	
+	x1,y1,z1,w1=x1/m1,y1/m1,z1/m1,w1/m1
+	x2,y2,z2,w2=x2/m2,y2/m2,z2/m2,w2/m2
+	
 	local dot=(x1*x2)+(y1*y2)+(z1*z2)+(w1*w2)
 	
 	if dot<0 then
@@ -722,13 +734,11 @@ matrix4.__tostring=function(a)
 end
 
 matrix4.__add=function(a,b)
-	local x,y,z=a:get_position()
-	return matrix4.new(a:unpack()):set_position(x+b.x,y+b.y,z+b.z)
+	return matrix4.new(a:unpack()):translate(b.x,b.y,b.z)
 end
 
 matrix4.__sub=function(a,b)
-	local x,y,z=a:get_position()
-	return matrix4.new(a:unpack()):set_position(x-b.x,y-b.y,z-b.z)
+	return matrix4.new(a:unpack()):translate(-b.x,-b.y,-b.z)
 end
 
 matrix4.__mul=function(a,b)
@@ -775,6 +785,10 @@ udim2.set=function(a,x_scale,x_offset,y_scale,y_offset)
 	a.x_scale,a.x_offset=x_scale or 0,x_offset or 0
 	a.y_scale,a.y_offset=y_scale or 0,y_offset or 0
 	return a
+end
+
+udim2.clone=function(a)
+	return udim2.new(a:unpack())
 end
 
 udim2.lerp=function(a,b,t)
@@ -860,6 +874,10 @@ rect.set=function(a,min_x,min_y,max_x,max_y)
 	a.min_x,a.min_y=min_x or 0,min_y or 0
 	a.max_x,a.max_y=max_x or 0,max_y or 0
 	return a
+end
+
+rect.clone=function(a)
+	return rect.new(a:unpack())
 end
 
 rect.clamp=function(a,b)
@@ -950,6 +968,10 @@ end
 color3.set=function(a,r,g,b)
 	a.r,a.g,a.b=r or 0,b or 0,g or 0
 	return a
+end
+
+color3.clone=function(a)
+	return color3.new(a:unpack())
 end
 
 color3.set_hex=function(a,hex)
