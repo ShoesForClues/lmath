@@ -397,8 +397,8 @@ matrix4.set_perspective=function(a,fov,aspect,n,f)
 	return a:set(
 		1/(t*aspect),0,0,0,
 		0,1/t,0,0,
-		0,0,-(f+n)/(f-n),-1,
-		0,0,-(2*f*n)/(f-n),0
+		0,0,-(f+n)/(f-n),-(2*f*n)/(f-n),
+		0,0,-1,0
 	)
 end
 
