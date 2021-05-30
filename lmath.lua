@@ -475,6 +475,7 @@ end
 
 matrix4.set_look=function(a,front_x,front_y,front_z,up_x,up_y,up_z)
 	up_x,up_y,up_z=up_x or 0,up_y or 1,up_z or 0
+	front_x,front_y,front_z=-front_x,-front_y,-front_z
 	
 	local right_x = up_y*front_z-up_z*front_y
 	local right_y = up_z*front_x-up_x*front_z
@@ -560,7 +561,7 @@ matrix4.get_quat=function(a)
 end
 
 matrix4.get_look=function(a)
-	return a[3],a[7],a[11]
+	return -a[3],-a[7],-a[11]
 end
 
 matrix4.multiply=function(a,b)
@@ -1078,12 +1079,12 @@ end
 -------------------------------------------------------------------------------
 
 --Data Types
-lmath.vector2 = setmetatable(vector2,vector2)
-lmath.vector3 = setmetatable(vector3,vector3)
-lmath.matrix4 = setmetatable(matrix4,matrix4)
-lmath.rect    = setmetatable(rect,rect)
-lmath.udim2   = setmetatable(udim2,udim2)
-lmath.color3  = setmetatable(color3,color3)
+lmath.vector2 = vector2
+lmath.vector3 = vector3
+lmath.matrix4 = matrix4
+lmath.rect    = rect
+lmath.udim2   = udim2
+lmath.color3  = color3
 
 --Constants
 unit_x = lmath.vector3.new(1,0,0)
