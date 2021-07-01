@@ -5,8 +5,6 @@ A light math library written in Lua.
 
 - **vector2**
 - **vector3**
-- **udim2**
-- **rect**
 - **color3**
 - **matrix4**
 
