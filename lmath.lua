@@ -44,15 +44,13 @@ local tpi   = pi*2
 -------------------------------------------------------------------------------
 
 local lmath={
-	version="0.2.2"
+	version="0.2.3"
 }
 
 --Data Types
 local vector2 = {}
 local vector3 = {}
 local matrix4 = {}
-local rect    = {}
-local udim2   = {}
 local color3  = {}
 
 --Constants
@@ -108,11 +106,11 @@ end
 
 lmath.round=function(num,decimal_place)
 	local mult=10^(decimal_place or 0)
-	return floor(num*mult+0.5)/mult
+	return num>0 and floor(num*mult+0.5)/mult or ceil(num*mult-0.5)/mult
 end
 
-lmath.round_multiple=function(num,multiple)
-	return floor(num/multiple+0.5)*multiple
+lmath.round_multiple=function(num,mult)
+	return num>0 and floor(num/mult+0.5)*mult or ceil(num/mult-0.5)*mult
 end
 
 lmath.rotate_point=function(x1,y1,x2,y2,angle) --Point, Origin, Radians
@@ -769,193 +767,6 @@ end
 
 -------------------------------------------------------------------------------
 
-udim2.__index=udim2
-
-udim2.new=function(x_scale,x_offset,y_scale,y_offset)
-	return setmetatable({
-		x_scale=x_scale or 0,x_offset=x_offset or 0,
-		y_scale=y_scale or 0,y_offset=y_offset or 0
-	},udim2)
-end
-
-udim2.unpack=function(a)
-	return a.x_scale,a.x_offset,a.y_scale,a.y_offset
-end
-
-udim2.set=function(a,x_scale,x_offset,y_scale,y_offset)
-	a.x_scale,a.x_offset=x_scale or 0,x_offset or 0
-	a.y_scale,a.y_offset=y_scale or 0,y_offset or 0
-	return a
-end
-
-udim2.clone=function(a)
-	return udim2.new(a:unpack())
-end
-
-udim2.lerp=function(a,b,t)
-	return a:set(
-		a.x_scale*(1-t)+b.x_scale*t,
-		a.x_offset*(1-t)+b.x_offset*t,
-		a.y_scale*(1-t)+b.y_scale*t,
-		a.y_offset*(1-t)+b.y_offset*t
-	)
-end
-
-udim2.__tostring=function(a)
-	return ("%f, %d, %f, %d"):format(a:unpack())
-end
-
-udim2.__unm=function(a)
-	return udim2.new(-a.x_scale,-a.x_offset,-a.y_scale,-a.y_offset)
-end
-
-udim2.__add=function(a,b)
-	return udim2.new(
-		a.x_scale+b.x_scale,a.x_offset+b.x_offset,
-		a.y_scale+b.y_scale,a.y_offset+b.y_offset
-	)
-end
-
-udim2.__sub=function(a,b)
-	return udim2.new(
-		a.x_scale-b.x_scale,a.x_offset-b.x_offset,
-		a.y_scale-b.y_scale,a.y_offset-b.y_offset
-	)
-end
-
-udim2.__mul=function(a,b)
-	if type(a)=="number" then
-		return udim2.new(a*b.x_scale,a*b.x_offset,a*b.y_scale,a*b.y_offset)
-	elseif type(b)=="number" then
-		return udim2.new(a.x_scale*b,a.x_offset*b,a.y_scale*b,a.y_offset*b)
-	else
-		return udim2.new(
-			a.x_scale*b.x_scale,a.x_offset*b.x_offset,
-			a.y_scale*b.y_scale,a.y_offset*b.y_offset
-		)
-	end
-end
-
-udim2.__div=function(a,b,o)
-	if type(a)=="number" then
-		return udim2.new(a/b.x_scale,a/b.x_offset,a/b.y_scale,a/b.y_offset)
-	elseif type(b)=="number" then
-		return udim2.new(a.x_scale/b,a.x_offset/b,a.y_scale/b,a.y_offset/b)
-	else
-		return udim2.new(
-			a.x_scale/b.x_scale,a.x_offset/b.x_offset,
-			a.y_scale/b.y_scale,a.y_offset/b.y_offset
-		)
-	end
-end
-
-udim2.__eq=function(a,b)
-	return (
-		a.x_scale==b.x_scale and a.x_offset==b.x_offset and 
-		a.y_scale==b.y_scale and a.y_offset==b.y_offset
-	)
-end
-
--------------------------------------------------------------------------------
-
-rect.__index=rect
-
-rect.new=function(min_x,min_y,max_x,max_y)
-	return setmetatable({
-		min_x=min_x or 0,min_y=min_y or 0,
-		max_x=max_x or 0,max_y=max_y or 0
-	},rect)
-end
-
-rect.unpack=function(a)
-	return a.min_x,a.min_y,a.max_x,a.max_y
-end
-
-rect.set=function(a,min_x,min_y,max_x,max_y)
-	a.min_x,a.min_y=min_x or 0,min_y or 0
-	a.max_x,a.max_y=max_x or 0,max_y or 0
-	return a
-end
-
-rect.clone=function(a)
-	return rect.new(a:unpack())
-end
-
-rect.clamp=function(a,b)
-	return a:set(
-		lmath.clamp(a.min_x,b.min_x,b.max_x),
-		lmath.clamp(a.min_y,b.min_y,b.max_y),
-		lmath.clamp(a.max_x,b.min_x,b.max_x),
-		lmath.clamp(a.max_y,b.min_y,b.max_y)
-	)
-end
-
-rect.lerp=function(a,b,t)
-	return a:set(
-		a.min_x*(1-t)+b.min_x*t,
-		a.min_y*(1-t)+b.min_y*t,
-		a.max_x*(1-t)+b.max_x*t,
-		a.max_y*(1-t)+b.max_y*t
-	)
-end
-
-rect.__tostring=function(a)
-	return ("%d, %d, %d, %d"):format(a:unpack())
-end
-
-rect.__unm=function(a)
-	return rect.new(-a.min_x,-a.min_y,-a.max_x,-a.max_y)
-end
-
-rect.__add=function(a,b)
-	return rect.new(
-		a.min_x+b.min_x,a.min_y+b.min_y,
-		a.max_x+b.max_x,a.max_y+b.max_y
-	)
-end
-
-rect.__sub=function(a,b)
-	return rect.new(
-		a.min_x-b.min_x,a.min_y-b.min_y,
-		a.max_x-b.max_x,a.max_y-b.max_y
-	)
-end
-
-rect.__mul=function(a,b)
-	if type(a)=="number" then
-		return rect.new(a*b.min_x,a*b.min_y,a*b.max_x,a*b.max_y)
-	elseif type(b)=="number" then
-		return rect.new(a.min_x*b,a.min_y*b,a.max_x*b,a.max_y*b)
-	else
-		return rect.new(
-			a.min_x*b.min_x,a.min_y*b.min_y,
-			a.max_x*b.max_x,a.max_y*b.max_y
-		)
-	end
-end
-
-rect.__div=function(a,b)
-	if type(a)=="number" then
-		return rect.new(a/b.min_x,a/b.min_y,a/b.max_x,a/b.max_y)
-	elseif type(b)=="number" then
-		return rect.new(a.min_x/b,a.min_y/b,a.max_x/b,a.max_y/b)
-	else
-		return rect.new(
-			a.min_x/b.min_x,a.min_y/b.min_y,
-			a.max_x/b.max_x,a.max_y/b.max_y
-		)
-	end
-end
-
-rect.__eq=function(a,b)
-	return (
-		a.min_x==b.min_x and a.min_y==b.min_y and 
-		a.max_x==b.max_x and a.max_y==b.max_y
-	)
-end
-
--------------------------------------------------------------------------------
-
 color3.__index=color3
 
 color3.new=function(r,g,b)
@@ -1082,8 +893,6 @@ end
 lmath.vector2 = vector2
 lmath.vector3 = vector3
 lmath.matrix4 = matrix4
-lmath.rect    = rect
-lmath.udim2   = udim2
 lmath.color3  = color3
 
 --Constants
